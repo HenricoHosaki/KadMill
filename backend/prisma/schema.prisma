@@ -1,0 +1,83 @@
+// backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Funcao {
+  OPERADOR
+  GERENTE
+  ADMIN
+}
+
+enum Setor {
+  NOTURNO
+  DIURNO
+}
+
+enum Status {
+  ATIVO
+  INATIVO
+}
+
+model Usuario {
+    id Int @id @default(autoincrement())
+    nome String
+    email String @unique
+    senha String
+    cpf String @unique @db.Char(11)
+    funcao Funcao @default(OPERADOR)
+    setor Setor @default(DIURNO)
+    status Status @default(ATIVO)
+    data_admissao DateTime @default(now())
+}
+
+model Fornecedor {
+    id Int @id @default(autoincrement())
+    nome String
+    contato String
+    cpf_cnpj String @unique
+    telefone String
+    email String @unique
+    endereco String
+    observacao String?
+    data_cadastro DateTime @default(now())
+    materiaPrima MateriaPrima[]
+}
+
+model Cliente {
+    id Int @id @default(autoincrement())
+    nome String 
+    email String @unique
+    telefone String
+    endereco String
+    cpf_cnpj String @unique
+    data_cadastro DateTime @default(now())
+}
+
+model Ferramenta {
+    id Int @id @default(autoincrement())
+    nome String
+    tipo String
+    descricao String
+    quantidade_disponivel Int @default(0)
+    status Status @default(ATIVO)
+    ultima_manutencao DateTime?
+}
+
+model MateriaPrima {
+    id Int @id @default(autoincrement())
+    nome String
+    descricao String
+    quantidade_disponivel Int @default(0)
+    unidade_medida String
+    fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id])
+    fornecedorId Int
+    ultima_entrada DateTime?
+    valor_unitario Float
+}
