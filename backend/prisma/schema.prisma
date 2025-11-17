@@ -81,3 +81,4 @@ model MateriaPrima {
     ultima_entrada DateTime?
     valor_unitario Float
 }
+
