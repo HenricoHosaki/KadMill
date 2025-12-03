@@ -35,6 +35,7 @@ model Usuario {
     setor Setor @default(DIURNO)
     status Status @default(ATIVO)
     data_admissao DateTime @default(now())
+    apontamentosUsuario Apontamento[]
 }
 
 model Fornecedor {
@@ -58,6 +59,7 @@ model Cliente {
     endereco String
     cpf_cnpj String @unique
     data_cadastro DateTime @default(now())
+    clienteOrdemServico OrdemServico[]
 }
 
 model Ferramenta {
@@ -68,6 +70,15 @@ model Ferramenta {
     quantidade_disponivel Int @default(0)
     status Status @default(ATIVO)
     ultima_manutencao DateTime?
+    apontamentosFerramenta Apontamento[]
+}
+
+enum UnidadeMedida {
+    KG
+    L
+    UN
+    M
+    CAIXA
 }
 
 model MateriaPrima {
@@ -75,10 +86,63 @@ model MateriaPrima {
     nome String
     descricao String
     quantidade_disponivel Int @default(0)
-    unidade_medida String
+    unidade_medida UnidadeMedida
     fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id])
     fornecedorId Int
     ultima_entrada DateTime?
-    valor_unitario Float
+    valor_unitario Decimal @db.Decimal(10,2)
+    apontamentosMateriaPrima Apontamento[]
+    composicao ProdutoMateriaPrima[]
 }
 
+model ProdutoMateriaPrima {
+    id Int @id @default(autoincrement())
+    produto Produto @relation(fields: [produtoId], references: [id])
+    produtoId Int
+    materiaPrima MateriaPrima @relation(fields: [materiaPrimaId], references: [id])
+    materiaPrimaId Int
+    quantidadeNecessaria Float
+
+    @@unique([produtoId, materiaPrimaId])
+}
+
+model Produto {
+    id Int @id @default(autoincrement())
+    nome String
+    descricao String
+    quantidade_estoque Int @default(0)
+    preco_unitario Decimal @db.Decimal(10,2)
+    custo_unitario Decimal @db.Decimal(10,2)
+    data_registro DateTime @default(now())
+    composicao ProdutoMateriaPrima[]
+}
+
+model OrdemServico {
+    id Int @id @default(autoincrement())
+    numero_os String @unique
+    cliente Cliente @relation(fields: [clienteId], references: [id])
+    clienteId Int
+    descricao_servico String
+    data_abertura DateTime @default(now())
+    data_fechamento DateTime?
+    status String @default("ABERTA")
+    valor_total Decimal @db.Decimal(10,2)
+    observacao String?
+    apontamentosOrdemServico Apontamento[]
+}
+
+model Apontamento {
+    id Int @id @default (autoincrement())
+    usuario Usuario @relation(fields: [usuarioId], references: [id])
+    usuarioId Int
+    ordemServico OrdemServico @relation(fields: [ordemServicoId], references: [id])
+    ordemServicoId Int
+    ferramenta Ferramenta? @relation(fields: [ferramentaId], references: [id])
+    ferramentaId Int?
+    materiaPrima MateriaPrima? @relation(fields: [materiaPrimaId], references: [id])
+    materiaPrimaId Int?
+    quantidade_utilizada Int @default(0)
+    data_apontamento DateTime @default(now())
+    tempo_execucao Int @default(0)
+    observacao String?
+}
