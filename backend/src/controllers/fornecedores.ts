@@ -1,15 +1,15 @@
-import { AdministradorService } from './../services/administradores';
+import { FornecedorService } from './../services/fornecedores';
 import { Request, Response } from 'express';
 
-const administradorService = new AdministradorService();
+const fornecedorService = new FornecedorService();
 
-export class AdministradorController {
+export class fornecedorController {
 
-    async pegarTodosUsuarios(req: Request, res: Response) {
+    async pegarTodosFornecedores(req: Request, res: Response) {
         try {
-            const usuarios = await administradorService.pegarTodosUsuarios();
+            const fornecedores = await fornecedorService.pegarTodosFornecedores();
  
-            return res.status(200).json(usuarios);
+            return res.status(200).json(fornecedores);
         } catch (err) {
             return res.status(500).json({
                 message: "Erro interno do servidor"
@@ -17,7 +17,7 @@ export class AdministradorController {
         }
     }
 
-    async pegarUsuarioPorId(req: Request, res: Response) {
+    async pegarFornecedorPorId(req: Request, res: Response) {
         try{
             const { id } = req.params;
             const idConvertido = Number(id);
@@ -28,35 +28,35 @@ export class AdministradorController {
                 })
             }
 
-            const usuario = await administradorService.pegarUsuarioPorId(idConvertido);
+            const fornecedor = await fornecedorService.pegarFornecedorPorId(idConvertido);
 
-            if(!usuario){
+            if(!fornecedor){
                 return res.status(404).json({
-                    messsage: "Usuário não encontrado"
+                    messsage: "Fornecedor não encontrado"
                 })
             }
 
-            return res.status(200).json(usuario)
+            return res.status(200).json(fornecedor)
         }catch(err){
             return res.status(500).json({
-                message: "Erro ao encontrar ID de usuário"
+                message: "Erro ao encontrar ID de fornecedor"
             })
         }
     }
 
-    async criarUsuario(req: Request, res: Response) {
+    async criarFornecedor(req: Request, res: Response) {
         try{
-            const usuario = req.body
-            const criarUsuario = await administradorService.criarUsuario(usuario)
+            const fornecedor = req.body
+            const criarFornecedor = await fornecedorService.adicionarFornecedor(fornecedor)
 
-            if(!criarUsuario){
+            if(!criarFornecedor){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
             }
 
             return res.status(201).json({
-                message: "Usuário registrado com sucesso"
+                message: "Fornecedor registrado com sucesso"
             })
         }catch(err){
             res.status(500).json({
@@ -65,10 +65,10 @@ export class AdministradorController {
         }
     }
 
-    async atualizarUsuario(req: Request, res: Response) {
+    async atualizarFornecedor(req: Request, res: Response) {
         try{
             const { id } = req.params
-            const usuario = req.body
+            const fornecedor = req.body
             const idConvertido = Number(id);
 
             if(isNaN(idConvertido)){
@@ -77,16 +77,16 @@ export class AdministradorController {
                 })
             }
             
-            const atualizarUsuario = await administradorService.atualizarUsuario(idConvertido, usuario)
+            const atualizarFornecedor = await fornecedorService.atualizarFornecedor(idConvertido, fornecedor)
 
-            if(!atualizarUsuario){
+            if(!atualizarFornecedor){
                 return res.status(404).json({
-                    message: "Não foi possível atualizar o usuário"
+                    message: "Não foi possível atualizar o fornecedor"
                 })
             }
 
             return res.status(200).json({
-                message: "Usuário atualizado"
+                message: "Fornecedor atualizado"
             })
         }catch(err){
             return res.status(500).json({
@@ -95,22 +95,22 @@ export class AdministradorController {
         }
     }
 
-    async deletarUsuario(req: Request, res: Response) {
+    async deletarFornecedor(req: Request, res: Response) {
         try{
             const { id } = req.params
             const idConvertido = Number(id)
             
             if(isNaN(idConvertido)){
                 return res.status(400).json({
-                    message: "Não foi possível deletar o usuário"
+                    message: "Não foi possível deletar o fornecedor"
                 })
             }
 
-            const deletarUsuario = await administradorService.deletarUsuario(idConvertido)
+            const deletarFornecedor = await fornecedorService.deletarFornecedor(idConvertido)
 
             return res.status(200).json({
-                message: "Usuário deletado com sucesso",
-                usuario: deletarUsuario
+                message: "Fornecedor deletado com sucesso",
+                fornecedor: deletarFornecedor
             })
         }catch(err){
             return res.status(500).json({

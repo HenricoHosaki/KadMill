@@ -1,15 +1,15 @@
-import { AdministradorService } from './../services/administradores';
+import { ApontamentoService } from './../services/apontamentos';
 import { Request, Response } from 'express';
 
-const administradorService = new AdministradorService();
+const apontamentoService = new ApontamentoService();
 
-export class AdministradorController {
+export class ApontamentoController {
 
-    async pegarTodosUsuarios(req: Request, res: Response) {
+    async pegarTodosApontamentos(req: Request, res: Response) {
         try {
-            const usuarios = await administradorService.pegarTodosUsuarios();
+            const apontamentos = await apontamentoService.pegarTodosApontamentos();
  
-            return res.status(200).json(usuarios);
+            return res.status(200).json(apontamentos);
         } catch (err) {
             return res.status(500).json({
                 message: "Erro interno do servidor"
@@ -17,7 +17,7 @@ export class AdministradorController {
         }
     }
 
-    async pegarUsuarioPorId(req: Request, res: Response) {
+    async pegarApontamentoPorId(req: Request, res: Response) {
         try{
             const { id } = req.params;
             const idConvertido = Number(id);
@@ -28,35 +28,35 @@ export class AdministradorController {
                 })
             }
 
-            const usuario = await administradorService.pegarUsuarioPorId(idConvertido);
+            const apontamento = await apontamentoService.pegarApontamentoPorId(idConvertido);
 
-            if(!usuario){
+            if(!apontamento){
                 return res.status(404).json({
-                    messsage: "Usuário não encontrado"
+                    messsage: "apontamento não encontrado"
                 })
             }
 
-            return res.status(200).json(usuario)
+            return res.status(200).json(apontamento)
         }catch(err){
             return res.status(500).json({
-                message: "Erro ao encontrar ID de usuário"
+                message: "Erro ao encontrar ID de apontamento"
             })
         }
     }
 
-    async criarUsuario(req: Request, res: Response) {
+    async criarApontamento(req: Request, res: Response) {
         try{
-            const usuario = req.body
-            const criarUsuario = await administradorService.criarUsuario(usuario)
+            const apontamento = req.body
+            const criarApontamento = await apontamentoService.criarApontamento(apontamento)
 
-            if(!criarUsuario){
+            if(!criarApontamento){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
             }
 
             return res.status(201).json({
-                message: "Usuário registrado com sucesso"
+                message: "apontamento registrado com sucesso"
             })
         }catch(err){
             res.status(500).json({
@@ -65,10 +65,10 @@ export class AdministradorController {
         }
     }
 
-    async atualizarUsuario(req: Request, res: Response) {
+    async atualizarApontamento(req: Request, res: Response) {
         try{
             const { id } = req.params
-            const usuario = req.body
+            const apontamento = req.body
             const idConvertido = Number(id);
 
             if(isNaN(idConvertido)){
@@ -77,16 +77,16 @@ export class AdministradorController {
                 })
             }
             
-            const atualizarUsuario = await administradorService.atualizarUsuario(idConvertido, usuario)
+            const atualizarApontamento = await apontamentoService.atualizarApontamento(idConvertido, apontamento)
 
-            if(!atualizarUsuario){
+            if(!atualizarApontamento){
                 return res.status(404).json({
-                    message: "Não foi possível atualizar o usuário"
+                    message: "Não foi possível atualizar o apontamento"
                 })
             }
 
             return res.status(200).json({
-                message: "Usuário atualizado"
+                message: "apontamento atualizado"
             })
         }catch(err){
             return res.status(500).json({
@@ -95,22 +95,22 @@ export class AdministradorController {
         }
     }
 
-    async deletarUsuario(req: Request, res: Response) {
+    async deletarApontamento(req: Request, res: Response) {
         try{
             const { id } = req.params
             const idConvertido = Number(id)
             
             if(isNaN(idConvertido)){
                 return res.status(400).json({
-                    message: "Não foi possível deletar o usuário"
+                    message: "Não foi possível deletar o apontamento"
                 })
             }
 
-            const deletarUsuario = await administradorService.deletarUsuario(idConvertido)
+            const deletarApontamento = await apontamentoService.deletarApontamento(idConvertido)
 
             return res.status(200).json({
-                message: "Usuário deletado com sucesso",
-                usuario: deletarUsuario
+                message: "apontamento deletado com sucesso",
+                apontamentos: deletarApontamento
             })
         }catch(err){
             return res.status(500).json({

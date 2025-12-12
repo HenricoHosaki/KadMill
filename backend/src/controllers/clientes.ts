@@ -1,15 +1,15 @@
-import { AdministradorService } from './../services/administradores';
+import { ClienteService } from './../services/clientes';
 import { Request, Response } from 'express';
 
-const administradorService = new AdministradorService();
+const clienteService = new ClienteService();
 
-export class AdministradorController {
+export class ClienteController {
 
-    async pegarTodosUsuarios(req: Request, res: Response) {
+    async pegarTodosClientes(req: Request, res: Response) {
         try {
-            const usuarios = await administradorService.pegarTodosUsuarios();
+            const clientes = await clienteService.pegarTodosClientes();
  
-            return res.status(200).json(usuarios);
+            return res.status(200).json(clientes);
         } catch (err) {
             return res.status(500).json({
                 message: "Erro interno do servidor"
@@ -17,7 +17,7 @@ export class AdministradorController {
         }
     }
 
-    async pegarUsuarioPorId(req: Request, res: Response) {
+    async pegarClientePorId(req: Request, res: Response) {
         try{
             const { id } = req.params;
             const idConvertido = Number(id);
@@ -28,15 +28,15 @@ export class AdministradorController {
                 })
             }
 
-            const usuario = await administradorService.pegarUsuarioPorId(idConvertido);
+            const cliente = await clienteService.pegarClientePorId(idConvertido);
 
-            if(!usuario){
+            if(!cliente){
                 return res.status(404).json({
-                    messsage: "Usuário não encontrado"
+                    messsage: "Cliente não encontrado"
                 })
             }
 
-            return res.status(200).json(usuario)
+            return res.status(200).json(cliente)
         }catch(err){
             return res.status(500).json({
                 message: "Erro ao encontrar ID de usuário"
@@ -46,17 +46,17 @@ export class AdministradorController {
 
     async criarUsuario(req: Request, res: Response) {
         try{
-            const usuario = req.body
-            const criarUsuario = await administradorService.criarUsuario(usuario)
+            const cliente = req.body
+            const registrarCliente = await clienteService.adicionarCliente(cliente)
 
-            if(!criarUsuario){
+            if(!registrarCliente){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
             }
 
             return res.status(201).json({
-                message: "Usuário registrado com sucesso"
+                message: "Cliente registrado com sucesso"
             })
         }catch(err){
             res.status(500).json({
@@ -68,7 +68,7 @@ export class AdministradorController {
     async atualizarUsuario(req: Request, res: Response) {
         try{
             const { id } = req.params
-            const usuario = req.body
+            const cliente = req.body
             const idConvertido = Number(id);
 
             if(isNaN(idConvertido)){
@@ -77,16 +77,16 @@ export class AdministradorController {
                 })
             }
             
-            const atualizarUsuario = await administradorService.atualizarUsuario(idConvertido, usuario)
+            const atualizarCliente = await clienteService.atualizarCliente(idConvertido, cliente)
 
-            if(!atualizarUsuario){
+            if(!atualizarCliente){
                 return res.status(404).json({
-                    message: "Não foi possível atualizar o usuário"
+                    message: "Não foi possível atualizar o cliente"
                 })
             }
 
             return res.status(200).json({
-                message: "Usuário atualizado"
+                message: "cliente atualizado"
             })
         }catch(err){
             return res.status(500).json({
@@ -102,15 +102,15 @@ export class AdministradorController {
             
             if(isNaN(idConvertido)){
                 return res.status(400).json({
-                    message: "Não foi possível deletar o usuário"
+                    message: "Não foi possível deletar o cliente"
                 })
             }
 
-            const deletarUsuario = await administradorService.deletarUsuario(idConvertido)
+            const deletarCliente = await clienteService.deletarCliente(idConvertido)
 
             return res.status(200).json({
-                message: "Usuário deletado com sucesso",
-                usuario: deletarUsuario
+                message: "Cliente deletado com sucesso",
+                usuario: deletarCliente
             })
         }catch(err){
             return res.status(500).json({
