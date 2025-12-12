@@ -1,37 +1,38 @@
 import { prisma } from "../config/prisma";
-import { Usuario } from "@prisma/client";
+import { Prisma, Usuario } from "@prisma/client";
 
 export class AdministradorService {
 
     async pegarTodosUsuarios(): Promise<Usuario[]> {
-        
         return await prisma.usuario.findMany();
-    }
+    };
 
     async pegarUsuarioPorId(id: number): Promise<Usuario | null> {
-        
         return await prisma.usuario.findUnique({
             where: { id }
         });
-    }
+        
+    };
 
-    async criarUsuario(usuarioData: Usuario): Promise<Usuario> {
+    async criarUsuario(usuarioData: Prisma.UsuarioCreateInput): Promise<Usuario> {
         return await prisma.usuario.create({
             data: usuarioData
         });
-    }
+        
+    };
 
-    async atualizarUsuario(id: number, usuarioData: Partial<Usuario>): Promise<Usuario> {
+    async atualizarUsuario(id: number, usuarioData: Prisma.UsuarioUpdateInput): Promise<Usuario> {
         return await prisma.usuario.update({
             where: { id },
             data: usuarioData
         });
-    }
+        
+    };
     
     async deletarUsuario(id: number): Promise<Usuario> {
         return await prisma.usuario.delete({
             where: { id }
         });
-    }
+    };
 }
 
