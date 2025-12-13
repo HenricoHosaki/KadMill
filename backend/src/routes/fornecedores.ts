@@ -1,12 +1,14 @@
 import express from 'express';
 const router = express.Router();
+import { FornecedorController } from '../controllers/fornecedores';
+const fornecedorController = new FornecedorController();
 
-router.get('/fornecedores');
-router.get('/fornecedores/:id');
-router.post('/fornecedores');
+router.get('/fornecedores', fornecedorController.pegarTodosFornecedores);
+router.get('/fornecedores/:id', fornecedorController.pegarFornecedorPorId);
+router.post('/fornecedores', fornecedorController.criarFornecedor);
 
 //Rotas de administração
-router.put('/fornecedores/:id');
-router.delete('/fornecedores/:id');
+router.put('/fornecedores/:id', fornecedorController.atualizarFornecedor);
+router.delete('/fornecedores/:id', fornecedorController.deletarFornecedor);
 
 export default router;

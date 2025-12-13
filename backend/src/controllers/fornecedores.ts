@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 const fornecedorService = new FornecedorService();
 
-export class fornecedorController {
+export class FornecedorController {
 
     async pegarTodosFornecedores(req: Request, res: Response) {
         try {

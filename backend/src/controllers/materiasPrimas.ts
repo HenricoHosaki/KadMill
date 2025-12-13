@@ -1,15 +1,15 @@
-import { AdministradorService } from './../services/administradores';
+import { MateriaPrimaService } from './../services/materiasPrimas';
 import { Request, Response } from 'express';
 
-const administradorService = new AdministradorService();
+const materiaPrimaService = new MateriaPrimaService();
 
-export class AdministradorController {
+export class MateriaPrimaController {
 
-    async pegarTodosUsuarios(req: Request, res: Response) {
+    async pegarTodosMateriaPrimas(req: Request, res: Response) {
         try {
-            const usuarios = await administradorService.pegarTodosUsuarios();
+            const materiaPrimas = await materiaPrimaService.pegarTodosMateriaPrimas();
  
-            return res.status(200).json(usuarios);
+            return res.status(200).json(materiaPrimas);
         } catch (err) {
             return res.status(500).json({
                 message: "Erro interno do servidor"
@@ -17,7 +17,7 @@ export class AdministradorController {
         }
     }
 
-    async pegarUsuarioPorId(req: Request, res: Response) {
+    async pegarMateriaPrimaPorId(req: Request, res: Response) {
         try{
             const { id } = req.params;
             const idConvertido = Number(id);
@@ -28,35 +28,35 @@ export class AdministradorController {
                 })
             }
 
-            const usuario = await administradorService.pegarUsuarioPorId(idConvertido);
+            const materiaPrima = await materiaPrimaService.pegarMateriaPrimaPorId(idConvertido);
 
-            if(!usuario){
+            if(!materiaPrima){
                 return res.status(404).json({
-                    messsage: "Usuário não encontrado"
+                    messsage: "Matéria prima não encontrada"
                 })
             }
 
-            return res.status(200).json(usuario)
+            return res.status(200).json(materiaPrima)
         }catch(err){
             return res.status(500).json({
-                message: "Erro ao encontrar ID de usuário"
+                message: "Erro ao encontrar ID da matéria prima"
             })
         }
     }
 
-    async criarUsuario(req: Request, res: Response) {
+    async criarMateriaPrima(req: Request, res: Response) {
         try{
-            const usuario = req.body
-            const criarUsuario = await administradorService.criarUsuario(usuario)
+            const materiaPrima = req.body
+            const criarMateriaPrima = await materiaPrimaService.adicionarMateriaPrima(materiaPrima)
 
-            if(!criarUsuario){
+            if(!criarMateriaPrima){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
             }
 
             return res.status(201).json({
-                message: "Usuário registrado com sucesso"
+                message: "Matéria prima registrada com sucesso"
             })
         }catch(err){
             res.status(500).json({
@@ -65,10 +65,10 @@ export class AdministradorController {
         }
     }
 
-    async atualizarUsuario(req: Request, res: Response) {
+    async atualizarMateriaPrima(req: Request, res: Response) {
         try{
             const { id } = req.params
-            const usuario = req.body
+            const materiaPrima = req.body
             const idConvertido = Number(id);
 
             if(isNaN(idConvertido)){
@@ -77,16 +77,16 @@ export class AdministradorController {
                 })
             }
             
-            const atualizarUsuario = await administradorService.atualizarUsuario(idConvertido, usuario)
+            const atualizarMateriaPrima = await materiaPrimaService.atualizarMateriaPrima(idConvertido, materiaPrima)
 
-            if(!atualizarUsuario){
+            if(!atualizarMateriaPrima){
                 return res.status(404).json({
-                    message: "Não foi possível atualizar o usuário"
+                    message: "Não foi possível atualizar a matéria prima"
                 })
             }
 
             return res.status(200).json({
-                message: "Usuário atualizado"
+                message: "Matéria prima atualizada"
             })
         }catch(err){
             return res.status(500).json({
@@ -95,22 +95,22 @@ export class AdministradorController {
         }
     }
 
-    async deletarUsuario(req: Request, res: Response) {
+    async deletarMateriaPrima(req: Request, res: Response) {
         try{
             const { id } = req.params
             const idConvertido = Number(id)
             
             if(isNaN(idConvertido)){
                 return res.status(400).json({
-                    message: "Não foi possível deletar o usuário"
+                    message: "Não foi possível deletar a matéria prima"
                 })
             }
 
-            const deletarUsuario = await administradorService.deletarUsuario(idConvertido)
+            const deletarMateriaPrima = await materiaPrimaService.deletarMateriaPrima(idConvertido)
 
             return res.status(200).json({
                 message: "Usuário deletado com sucesso",
-                usuario: deletarUsuario
+                materiaPrima: deletarMateriaPrima
             })
         }catch(err){
             return res.status(500).json({

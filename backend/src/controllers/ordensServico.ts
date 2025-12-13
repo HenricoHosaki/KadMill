@@ -1,15 +1,15 @@
-import { AdministradorService } from './../services/administradores';
+import { OrdemServicoService } from './../services/ordensServico';
 import { Request, Response } from 'express';
 
-const administradorService = new AdministradorService();
+const ordemServicoService = new OrdemServicoService();
 
-export class AdministradorController {
+export class OrdemServicoServiceController {
 
-    async pegarTodosUsuarios(req: Request, res: Response) {
+    async pegarTodosOrdemServico(req: Request, res: Response) {
         try {
-            const usuarios = await administradorService.pegarTodosUsuarios();
+            const ordemServico = await ordemServicoService.pegarTodasOrdensServicos();
  
-            return res.status(200).json(usuarios);
+            return res.status(200).json(ordemServico);
         } catch (err) {
             return res.status(500).json({
                 message: "Erro interno do servidor"
@@ -17,7 +17,7 @@ export class AdministradorController {
         }
     }
 
-    async pegarUsuarioPorId(req: Request, res: Response) {
+    async pegarOrdemServicoPorId(req: Request, res: Response) {
         try{
             const { id } = req.params;
             const idConvertido = Number(id);
@@ -28,35 +28,35 @@ export class AdministradorController {
                 })
             }
 
-            const usuario = await administradorService.pegarUsuarioPorId(idConvertido);
+            const ordemServico = await ordemServicoService.pegarOrdemServicoPorId(idConvertido);
 
-            if(!usuario){
+            if(!ordemServico){
                 return res.status(404).json({
-                    messsage: "Usuário não encontrado"
+                    messsage: "Ordem de serviço não encontrada"
                 })
             }
 
-            return res.status(200).json(usuario)
+            return res.status(200).json(ordemServico)
         }catch(err){
             return res.status(500).json({
-                message: "Erro ao encontrar ID de usuário"
+                message: "Erro ao encontrar ID de ordem de serviço"
             })
         }
     }
 
-    async criarUsuario(req: Request, res: Response) {
+    async criarOrdemServico(req: Request, res: Response) {
         try{
-            const usuario = req.body
-            const criarUsuario = await administradorService.criarUsuario(usuario)
+            const ordemServico = req.body
+            const criarOrdemServico = await ordemServicoService.adicionarOrdemServico(ordemServico)
 
-            if(!criarUsuario){
+            if(!criarOrdemServico){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
             }
 
             return res.status(201).json({
-                message: "Usuário registrado com sucesso"
+                message: "Ordem de serviço registrada com sucesso"
             })
         }catch(err){
             res.status(500).json({
@@ -65,10 +65,10 @@ export class AdministradorController {
         }
     }
 
-    async atualizarUsuario(req: Request, res: Response) {
+    async atualizarOrdemServico(req: Request, res: Response) {
         try{
             const { id } = req.params
-            const usuario = req.body
+            const ordemServico = req.body
             const idConvertido = Number(id);
 
             if(isNaN(idConvertido)){
@@ -77,16 +77,16 @@ export class AdministradorController {
                 })
             }
             
-            const atualizarUsuario = await administradorService.atualizarUsuario(idConvertido, usuario)
+            const atualizarOrdemServico = await ordemServicoService.atualizarOrdemServico(idConvertido, ordemServico)
 
-            if(!atualizarUsuario){
+            if(!atualizarOrdemServico){
                 return res.status(404).json({
-                    message: "Não foi possível atualizar o usuário"
+                    message: "Não foi possível atualizar a ordem de serviço"
                 })
             }
 
             return res.status(200).json({
-                message: "Usuário atualizado"
+                message: "Ordem de serviço atualizada"
             })
         }catch(err){
             return res.status(500).json({
@@ -95,22 +95,22 @@ export class AdministradorController {
         }
     }
 
-    async deletarUsuario(req: Request, res: Response) {
+    async deletarOrdemServico(req: Request, res: Response) {
         try{
             const { id } = req.params
             const idConvertido = Number(id)
             
             if(isNaN(idConvertido)){
                 return res.status(400).json({
-                    message: "Não foi possível deletar o usuário"
+                    message: "Não foi possível deletar a ordem de serviço"
                 })
             }
 
-            const deletarUsuario = await administradorService.deletarUsuario(idConvertido)
+            const deletarOrdemServico = await ordemServicoService.deletarOrdemServico(idConvertido)
 
             return res.status(200).json({
-                message: "Usuário deletado com sucesso",
-                usuario: deletarUsuario
+                message: "Ordem de serviço deletado com sucesso",
+                ordemServico: deletarOrdemServico
             })
         }catch(err){
             return res.status(500).json({

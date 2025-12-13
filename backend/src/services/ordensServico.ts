@@ -3,7 +3,7 @@ import { Prisma, OrdemServico } from "@prisma/client";
 
 export class OrdemServicoService{
 
-    async pegarTodosOrdemServicos(): Promise<OrdemServico[]>{
+    async pegarTodasOrdensServicos(): Promise<OrdemServico[]>{
         try{
         return await prisma.ordemServico.findMany();
         }catch(err){

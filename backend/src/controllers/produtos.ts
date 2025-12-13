@@ -1,15 +1,15 @@
-import { AdministradorService } from './../services/administradores';
+import { ProdutoService } from './../services/produtos';
 import { Request, Response } from 'express';
 
-const administradorService = new AdministradorService();
+const produtoService = new ProdutoService();
 
-export class AdministradorController {
+export class ProdutoServiceController {
 
-    async pegarTodosUsuarios(req: Request, res: Response) {
+    async pegarTodosProdutos(req: Request, res: Response) {
         try {
-            const usuarios = await administradorService.pegarTodosUsuarios();
+            const produtos = await produtoService.pegarTodosProdutos();
  
-            return res.status(200).json(usuarios);
+            return res.status(200).json(produtos);
         } catch (err) {
             return res.status(500).json({
                 message: "Erro interno do servidor"
@@ -17,7 +17,7 @@ export class AdministradorController {
         }
     }
 
-    async pegarUsuarioPorId(req: Request, res: Response) {
+    async pegarProdutoPorId(req: Request, res: Response) {
         try{
             const { id } = req.params;
             const idConvertido = Number(id);
@@ -28,35 +28,35 @@ export class AdministradorController {
                 })
             }
 
-            const usuario = await administradorService.pegarUsuarioPorId(idConvertido);
+            const produto = await produtoService.pegarProdutoPorId(idConvertido);
 
-            if(!usuario){
+            if(!produto){
                 return res.status(404).json({
-                    messsage: "Usuário não encontrado"
+                    messsage: "Produto não encontrado"
                 })
             }
 
-            return res.status(200).json(usuario)
+            return res.status(200).json(produto)
         }catch(err){
             return res.status(500).json({
-                message: "Erro ao encontrar ID de usuário"
+                message: "Erro ao encontrar ID de produto"
             })
         }
     }
 
-    async criarUsuario(req: Request, res: Response) {
+    async criarProduto(req: Request, res: Response) {
         try{
-            const usuario = req.body
-            const criarUsuario = await administradorService.criarUsuario(usuario)
+            const produto = req.body
+            const criarProduto = await produtoService.adicionarProduto(produto)
 
-            if(!criarUsuario){
+            if(!criarProduto){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
             }
 
             return res.status(201).json({
-                message: "Usuário registrado com sucesso"
+                message: "Produto registrado com sucesso"
             })
         }catch(err){
             res.status(500).json({
@@ -65,10 +65,10 @@ export class AdministradorController {
         }
     }
 
-    async atualizarUsuario(req: Request, res: Response) {
+    async atualizarProduto(req: Request, res: Response) {
         try{
             const { id } = req.params
-            const usuario = req.body
+            const produto = req.body
             const idConvertido = Number(id);
 
             if(isNaN(idConvertido)){
@@ -77,16 +77,16 @@ export class AdministradorController {
                 })
             }
             
-            const atualizarUsuario = await administradorService.atualizarUsuario(idConvertido, usuario)
+            const atualizarProduto = await produtoService.atualizarProduto(idConvertido, produto)
 
-            if(!atualizarUsuario){
+            if(!atualizarProduto){
                 return res.status(404).json({
-                    message: "Não foi possível atualizar o usuário"
+                    message: "Não foi possível atualizar o produto"
                 })
             }
 
             return res.status(200).json({
-                message: "Usuário atualizado"
+                message: "Produto atualizado"
             })
         }catch(err){
             return res.status(500).json({
@@ -95,22 +95,22 @@ export class AdministradorController {
         }
     }
 
-    async deletarUsuario(req: Request, res: Response) {
+    async deletarProduto(req: Request, res: Response) {
         try{
             const { id } = req.params
             const idConvertido = Number(id)
             
             if(isNaN(idConvertido)){
                 return res.status(400).json({
-                    message: "Não foi possível deletar o usuário"
+                    message: "Não foi possível deletar o produto"
                 })
             }
 
-            const deletarUsuario = await administradorService.deletarUsuario(idConvertido)
+            const deletarProduto = await produtoService.deletarProduto(idConvertido)
 
             return res.status(200).json({
-                message: "Usuário deletado com sucesso",
-                usuario: deletarUsuario
+                message: "Produto deletado com sucesso",
+                produto: deletarProduto
             })
         }catch(err){
             return res.status(500).json({

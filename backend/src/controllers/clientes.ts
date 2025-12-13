@@ -44,7 +44,7 @@ export class ClienteController {
         }
     }
 
-    async criarUsuario(req: Request, res: Response) {
+    async criarCliente(req: Request, res: Response) {
         try{
             const cliente = req.body
             const registrarCliente = await clienteService.adicionarCliente(cliente)

@@ -1,7 +1,7 @@
 import { prisma } from "../config/prisma";
 import { Prisma, Apontamento, Usuario, OrdemServico } from "@prisma/client";
 
-export class ApontamentoService{
+export class RelatorioService{
 
     async pegarTodosApontamentos(): Promise<Apontamento[]>{
         return await prisma.apontamento.findMany();
@@ -11,7 +11,7 @@ export class ApontamentoService{
         return await prisma.usuario.findMany();
     }
 
-    async pegarTodasOrdemServico(): Promise<OrdemServico[]>{
+    async pegarTodasOrdensServicos(): Promise<OrdemServico[]>{
         return await prisma.ordemServico.findMany();
     }
 }
