@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 const ordemServicoService = new OrdemServicoService();
 
-export class OrdemServicoServiceController {
+export class OrdemServicoController {
 
     async pegarTodosOrdemServico(req: Request, res: Response) {
         try {

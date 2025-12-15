@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 const relatorioService = new RelatorioService();
 
-export class AdministradorController {
+export class RelatorioController {
 
     async pegarTodosUsuarios(req: Request, res: Response) {
         try {

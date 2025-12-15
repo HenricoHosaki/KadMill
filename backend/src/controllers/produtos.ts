@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 
 const produtoService = new ProdutoService();
 
-export class ProdutoServiceController {
+export class ProdutoController {
 
     async pegarTodosProdutos(req: Request, res: Response) {
         try {
