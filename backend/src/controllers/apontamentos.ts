@@ -47,9 +47,9 @@ export class ApontamentoController {
     async criarApontamento(req: Request, res: Response) {
         try{
             const apontamento = req.body
-            const criarApontamento = await apontamentoService.criarApontamento(apontamento)
+            const apontamentoCriado = await apontamentoService.criarApontamento(apontamento)
 
-            if(!criarApontamento){
+            if(!apontamentoCriado){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
@@ -77,9 +77,9 @@ export class ApontamentoController {
                 })
             }
             
-            const atualizarApontamento = await apontamentoService.atualizarApontamento(idConvertido, apontamento)
+            const apontamentoAtualizado = await apontamentoService.atualizarApontamento(idConvertido, apontamento)
 
-            if(!atualizarApontamento){
+            if(!apontamentoAtualizado){
                 return res.status(404).json({
                     message: "Não foi possível atualizar o apontamento"
                 })
@@ -106,11 +106,11 @@ export class ApontamentoController {
                 })
             }
 
-            const deletarApontamento = await apontamentoService.deletarApontamento(idConvertido)
+            const apontamentoDeletado = await apontamentoService.deletarApontamento(idConvertido)
 
             return res.status(200).json({
                 message: "apontamento deletado com sucesso",
-                apontamentos: deletarApontamento
+                apontamentos: apontamentoDeletado
             })
         }catch(err){
             return res.status(500).json({

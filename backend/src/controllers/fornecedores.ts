@@ -47,9 +47,9 @@ export class FornecedorController {
     async criarFornecedor(req: Request, res: Response) {
         try{
             const fornecedor = req.body
-            const criarFornecedor = await fornecedorService.adicionarFornecedor(fornecedor)
+            const fornecedorCriado = await fornecedorService.adicionarFornecedor(fornecedor)
 
-            if(!criarFornecedor){
+            if(!fornecedorCriado){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
@@ -77,9 +77,9 @@ export class FornecedorController {
                 })
             }
             
-            const atualizarFornecedor = await fornecedorService.atualizarFornecedor(idConvertido, fornecedor)
+            const fornecedorAtualizado = await fornecedorService.atualizarFornecedor(idConvertido, fornecedor)
 
-            if(!atualizarFornecedor){
+            if(!fornecedorAtualizado){
                 return res.status(404).json({
                     message: "Não foi possível atualizar o fornecedor"
                 })
@@ -106,11 +106,11 @@ export class FornecedorController {
                 })
             }
 
-            const deletarFornecedor = await fornecedorService.deletarFornecedor(idConvertido)
+            const fornecedorDeletado = await fornecedorService.deletarFornecedor(idConvertido)
 
             return res.status(200).json({
                 message: "Fornecedor deletado com sucesso",
-                fornecedor: deletarFornecedor
+                fornecedor: fornecedorDeletado
             })
         }catch(err){
             return res.status(500).json({

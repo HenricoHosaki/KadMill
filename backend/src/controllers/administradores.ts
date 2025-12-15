@@ -47,9 +47,9 @@ export class AdministradorController {
     async criarUsuario(req: Request, res: Response) {
         try{
             const usuario = req.body
-            const criarUsuario = await administradorService.criarUsuario(usuario)
+            const usuarioCriado = await administradorService.criarUsuario(usuario)
 
-            if(!criarUsuario){
+            if(!usuarioCriado){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
@@ -77,9 +77,9 @@ export class AdministradorController {
                 })
             }
             
-            const atualizarUsuario = await administradorService.atualizarUsuario(idConvertido, usuario)
+            const usuarioAtualizado = await administradorService.atualizarUsuario(idConvertido, usuario)
 
-            if(!atualizarUsuario){
+            if(!usuarioAtualizado){
                 return res.status(404).json({
                     message: "Não foi possível atualizar o usuário"
                 })
@@ -106,11 +106,11 @@ export class AdministradorController {
                 })
             }
 
-            const deletarUsuario = await administradorService.deletarUsuario(idConvertido)
+            const usuarioDeletado = await administradorService.deletarUsuario(idConvertido)
 
             return res.status(200).json({
                 message: "Usuário deletado com sucesso",
-                usuario: deletarUsuario
+                usuario: usuarioDeletado
             })
         }catch(err){
             return res.status(500).json({

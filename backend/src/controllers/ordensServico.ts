@@ -1,3 +1,4 @@
+import { OrdemServico } from '@prisma/client';
 import { OrdemServicoService } from './../services/ordensServico';
 import { Request, Response } from 'express';
 
@@ -47,9 +48,9 @@ export class OrdemServicoController {
     async criarOrdemServico(req: Request, res: Response) {
         try{
             const ordemServico = req.body
-            const criarOrdemServico = await ordemServicoService.adicionarOrdemServico(ordemServico)
+            const ordemServicoCriada = await ordemServicoService.adicionarOrdemServico(ordemServico)
 
-            if(!criarOrdemServico){
+            if(!ordemServicoCriada){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
@@ -77,9 +78,9 @@ export class OrdemServicoController {
                 })
             }
             
-            const atualizarOrdemServico = await ordemServicoService.atualizarOrdemServico(idConvertido, ordemServico)
+            const ordemServicoAtualizada = await ordemServicoService.atualizarOrdemServico(idConvertido, ordemServico)
 
-            if(!atualizarOrdemServico){
+            if(!ordemServicoAtualizada){
                 return res.status(404).json({
                     message: "Não foi possível atualizar a ordem de serviço"
                 })
@@ -106,11 +107,11 @@ export class OrdemServicoController {
                 })
             }
 
-            const deletarOrdemServico = await ordemServicoService.deletarOrdemServico(idConvertido)
+            const ordemServicoDeletada = await ordemServicoService.deletarOrdemServico(idConvertido)
 
             return res.status(200).json({
                 message: "Ordem de serviço deletado com sucesso",
-                ordemServico: deletarOrdemServico
+                ordemServico: ordemServicoDeletada
             })
         }catch(err){
             return res.status(500).json({

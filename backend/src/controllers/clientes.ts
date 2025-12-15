@@ -77,9 +77,9 @@ export class ClienteController {
                 })
             }
             
-            const atualizarCliente = await clienteService.atualizarCliente(idConvertido, cliente)
+            const clienteAtualizado = await clienteService.atualizarCliente(idConvertido, cliente)
 
-            if(!atualizarCliente){
+            if(!clienteAtualizado){
                 return res.status(404).json({
                     message: "Não foi possível atualizar o cliente"
                 })
@@ -106,11 +106,11 @@ export class ClienteController {
                 })
             }
 
-            const deletarCliente = await clienteService.deletarCliente(idConvertido)
+            const clienteDeletado = await clienteService.deletarCliente(idConvertido)
 
             return res.status(200).json({
                 message: "Cliente deletado com sucesso",
-                usuario: deletarCliente
+                usuario: clienteDeletado
             })
         }catch(err){
             return res.status(500).json({

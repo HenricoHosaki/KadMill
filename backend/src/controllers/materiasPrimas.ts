@@ -47,9 +47,9 @@ export class MateriaPrimaController {
     async criarMateriaPrima(req: Request, res: Response) {
         try{
             const materiaPrima = req.body
-            const criarMateriaPrima = await materiaPrimaService.adicionarMateriaPrima(materiaPrima)
+            const materiaPrimaCriada = await materiaPrimaService.adicionarMateriaPrima(materiaPrima)
 
-            if(!criarMateriaPrima){
+            if(!materiaPrimaCriada){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
@@ -77,9 +77,9 @@ export class MateriaPrimaController {
                 })
             }
             
-            const atualizarMateriaPrima = await materiaPrimaService.atualizarMateriaPrima(idConvertido, materiaPrima)
+            const materiaPrimaAtualizada = await materiaPrimaService.atualizarMateriaPrima(idConvertido, materiaPrima)
 
-            if(!atualizarMateriaPrima){
+            if(!materiaPrimaAtualizada){
                 return res.status(404).json({
                     message: "Não foi possível atualizar a matéria prima"
                 })
@@ -106,11 +106,11 @@ export class MateriaPrimaController {
                 })
             }
 
-            const deletarMateriaPrima = await materiaPrimaService.deletarMateriaPrima(idConvertido)
+            const materiaPrimaDeletada = await materiaPrimaService.deletarMateriaPrima(idConvertido)
 
             return res.status(200).json({
                 message: "Usuário deletado com sucesso",
-                materiaPrima: deletarMateriaPrima
+                materiaPrima: materiaPrimaDeletada
             })
         }catch(err){
             return res.status(500).json({

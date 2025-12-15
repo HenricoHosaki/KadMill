@@ -47,9 +47,9 @@ export class ProdutoController {
     async criarProduto(req: Request, res: Response) {
         try{
             const produto = req.body
-            const criarProduto = await produtoService.adicionarProduto(produto)
+            const produtoCriado = await produtoService.adicionarProduto(produto)
 
-            if(!criarProduto){
+            if(!produtoCriado){
                 return res.status(400).json({
                     message: "Informações inválidas"
                 })
@@ -77,9 +77,9 @@ export class ProdutoController {
                 })
             }
             
-            const atualizarProduto = await produtoService.atualizarProduto(idConvertido, produto)
+            const produtoAtualizado = await produtoService.atualizarProduto(idConvertido, produto)
 
-            if(!atualizarProduto){
+            if(!produtoAtualizado){
                 return res.status(404).json({
                     message: "Não foi possível atualizar o produto"
                 })
@@ -106,11 +106,11 @@ export class ProdutoController {
                 })
             }
 
-            const deletarProduto = await produtoService.deletarProduto(idConvertido)
+            const produtoDeletado = await produtoService.deletarProduto(idConvertido)
 
             return res.status(200).json({
                 message: "Produto deletado com sucesso",
-                produto: deletarProduto
+                produto: produtoDeletado
             })
         }catch(err){
             return res.status(500).json({
