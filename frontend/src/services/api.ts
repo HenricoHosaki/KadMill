@@ -6,7 +6,7 @@ Ele cuida do endereço, formato, e segurança (token) de todas as chamadas à AP
 
 import axios from "axios"; //cuida das requisições HTTP
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3333a";
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 export const api = axios.create({
   baseURL, //endereço base do backend

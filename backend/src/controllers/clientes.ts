@@ -39,7 +39,7 @@ export class ClienteController {
             return res.status(200).json(cliente)
         }catch(err){
             return res.status(500).json({
-                message: "Erro ao encontrar ID de usuário"
+                message: "Erro ao encontrar ID de cliente"
             })
         }
     }
