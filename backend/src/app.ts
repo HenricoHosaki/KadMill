@@ -9,7 +9,6 @@ import apontamentosRoutes from './routes/apontamentos';
 import administradoresRoutes from './routes/administradores';
 dotenv.config();
 
-const port = process.env.PORT;
 const app = express();
 app.use(express.json());
 app.use(clientesRoutes)
