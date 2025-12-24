@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
 import clientesRoutes from './routes/clientes';
 import fornecedoresRoutes from './routes/fornecedores';
 import produtosRoutes from './routes/produtos';
@@ -7,18 +8,29 @@ import ordensServicoRoutes from './routes/ordensServico';
 import materiasPrimasRoutes from './routes/materiasPrimas';
 import apontamentosRoutes from './routes/apontamentos';
 import administradoresRoutes from './routes/administradores';
-dotenv.config();
+import { criarAdmin } from './bootstrap/defaultAdmin'
 
-const app = express();
-app.use(express.json());
-app.use(clientesRoutes)
-app.use(fornecedoresRoutes)
-app.use(produtosRoutes)
-app.use(ordensServicoRoutes)
-app.use(materiasPrimasRoutes)
-app.use(apontamentosRoutes)
-app.use(administradoresRoutes)
+async function start() {
+  const app = express();
 
-app.listen(process.env.PORT || 3333, () => {
+  app.use(express.json());
+
+  app.use(clientesRoutes);
+  app.use(fornecedoresRoutes);
+  app.use(produtosRoutes);
+  app.use(ordensServicoRoutes);
+  app.use(materiasPrimasRoutes);
+  app.use(apontamentosRoutes);
+  app.use(administradoresRoutes);
+
+  await criarAdmin();
+
+  app.listen(process.env.PORT || 3333, () => {
     console.log(`Server is running on port ${process.env.PORT || 3333}`);
+  });
+}
+
+start().catch(err => {
+  console.error("Erro ao iniciar a aplicação:", err);
+  process.exit(1);
 });
