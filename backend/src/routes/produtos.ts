@@ -4,12 +4,12 @@ import { ProdutoController } from '../controllers/produtos';
 import { autenticadorMiddleware, apenasAdmin } from '../middlewares/authMiddeware';
 const produtoController = new ProdutoController();
 
-router.get('/produtos', produtoController.pegarTodosProdutos, autenticadorMiddleware);
-router.get('/produtos/:id', produtoController.pegarProdutoPorId, autenticadorMiddleware);
-router.post('/produtos', produtoController.criarProduto, autenticadorMiddleware);
+router.get('/produtos', autenticadorMiddleware, produtoController.pegarTodosProdutos);
+router.get('/produtos/:id', autenticadorMiddleware, produtoController.pegarProdutoPorId);
+router.post('/produtos', autenticadorMiddleware, produtoController.criarProduto);
 
 //Rotas de administração
-router.put('/produtos/:id', produtoController.atualizarProduto, autenticadorMiddleware, apenasAdmin);
-router.delete('/produtos/:id', produtoController.deletarProduto, autenticadorMiddleware, apenasAdmin);
+router.put('/produtos/:id', autenticadorMiddleware, apenasAdmin, produtoController.atualizarProduto);
+router.delete('/produtos/:id', autenticadorMiddleware, apenasAdmin, produtoController.deletarProduto);
 
 export default router;

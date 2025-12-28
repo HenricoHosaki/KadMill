@@ -4,12 +4,12 @@ import { FornecedorController } from '../controllers/fornecedores';
 import { autenticadorMiddleware, apenasAdmin } from '../middlewares/authMiddeware';
 const fornecedorController = new FornecedorController();
 
-router.get('/fornecedores', fornecedorController.pegarTodosFornecedores, autenticadorMiddleware);
-router.get('/fornecedores/:id', fornecedorController.pegarFornecedorPorId, autenticadorMiddleware);
-router.post('/fornecedores', fornecedorController.criarFornecedor, autenticadorMiddleware);
+router.get('/fornecedores', autenticadorMiddleware, fornecedorController.pegarTodosFornecedores);
+router.get('/fornecedores/:id', autenticadorMiddleware, fornecedorController.pegarFornecedorPorId);
+router.post('/fornecedores', autenticadorMiddleware, fornecedorController.criarFornecedor);
 
 //Rotas de administração
-router.put('/fornecedores/:id', fornecedorController.atualizarFornecedor, autenticadorMiddleware, apenasAdmin);
-router.delete('/fornecedores/:id', fornecedorController.deletarFornecedor, autenticadorMiddleware, apenasAdmin);
+router.put('/fornecedores/:id', autenticadorMiddleware, apenasAdmin, fornecedorController.atualizarFornecedor);
+router.delete('/fornecedores/:id', autenticadorMiddleware, apenasAdmin, fornecedorController.deletarFornecedor);
 
 export default router;
