@@ -1,10 +1,15 @@
 import { prisma } from "../config/prisma";
 import { Prisma, Usuario } from "@prisma/client";
+import { AppError } from "../errors/appError";
 
 export class AdministradorService {
 
     async pegarTodosUsuarios(): Promise<Usuario[]> {
-        return await prisma.usuario.findMany();
+        const usuarios = await prisma.usuario.findMany();
+        if(usuarios.length === 0){
+            throw new AppError('Nenhum usuário encontrado', 404)
+        }
+        return usuarios
     };
 
     async pegarUsuarioPorId(id: number): Promise<Usuario | null> {
