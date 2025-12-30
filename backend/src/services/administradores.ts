@@ -1,6 +1,7 @@
 import { prisma } from "../config/prisma";
 import { Prisma, Usuario } from "@prisma/client";
 import { AppError } from "../errors/appError";
+import { hash } from "bcrypt-ts"
 
 export class AdministradorService {
 
@@ -20,10 +21,14 @@ export class AdministradorService {
     };
 
     async criarUsuario(usuarioData: Prisma.UsuarioCreateInput): Promise<Usuario> {
+        const senhaHashada = await hash(usuarioData.senha, 10)
+
         return await prisma.usuario.create({
-            data: usuarioData
+
+            data: {...usuarioData,
+            senha: senhaHashada
+            },
         });
-        
     };
 
     async atualizarUsuario(id: number, usuarioData: Prisma.UsuarioUpdateInput): Promise<Usuario> {
