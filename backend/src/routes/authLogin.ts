@@ -4,3 +4,5 @@ import { AuthController } from '../controllers/authLogin';
 const authController = new AuthController();
 
 router.post('/login', authController.login)
+
+export default router;
