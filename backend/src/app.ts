@@ -16,7 +16,6 @@ async function start() {
   const app = express();
 
   app.use(express.json());
-  app.use(errorHandler)
 
   app.use(clientesRoutes);
   app.use(fornecedoresRoutes);
@@ -26,6 +25,7 @@ async function start() {
   app.use(apontamentosRoutes);
   app.use(administradoresRoutes);
   app.use(loginRoutes)
+  app.use(errorHandler)
 
   await criarAdmin();
 
