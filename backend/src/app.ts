@@ -9,11 +9,13 @@ import materiasPrimasRoutes from './routes/materiasPrimas';
 import apontamentosRoutes from './routes/apontamentos';
 import administradoresRoutes from './routes/administradores';
 import { criarAdmin } from './bootstrap/defaultAdmin'
+import { errorHandler } from './middlewares/globalLogs';
 
 async function start() {
   const app = express();
 
   app.use(express.json());
+  app.use(errorHandler)
 
   app.use(clientesRoutes);
   app.use(fornecedoresRoutes);

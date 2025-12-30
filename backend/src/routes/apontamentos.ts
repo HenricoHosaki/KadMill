@@ -5,8 +5,8 @@ import { autenticadorMiddleware, apenasAdmin } from '../middlewares/authMiddewar
 const apontamentoController = new ApontamentoController();
 
 router.get('/apontamentos', autenticadorMiddleware, apontamentoController.pegarTodosApontamentos);
-router.get('/apontamentos/:id', autenticadorMiddleware, apontamentoController.pegarApontamentoPorId, autenticadorMiddleware);
-router.post('/apontamentos', autenticadorMiddleware, apontamentoController.criarApontamento, autenticadorMiddleware);
+router.get('/apontamentos/:id', autenticadorMiddleware, apontamentoController.pegarApontamentoPorId);
+router.post('/apontamentos', autenticadorMiddleware, apontamentoController.criarApontamento);
 
 //Rotas de administração
 router.put('/apontamentos/:id', autenticadorMiddleware, apenasAdmin, apontamentoController.atualizarApontamento);

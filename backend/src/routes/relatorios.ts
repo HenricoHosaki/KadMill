@@ -5,8 +5,8 @@ import { autenticadorMiddleware, apenasAdmin } from '../middlewares/authMiddewar
 const relatorioController = new RelatorioController();
 
 //Rotas de administração de relatórios
-router.get('/relatorios', autenticadorMiddleware, apenasAdmin, relatorioController.pegarTodasOrdensServicos);
-router.get('/relatorios', autenticadorMiddleware, apenasAdmin, relatorioController.pegarTodosApontamentos);
-router.get('/relatorios', autenticadorMiddleware, apenasAdmin, relatorioController.pegarTodosUsuarios);
+router.get('/relatorios/ordens', autenticadorMiddleware, apenasAdmin, relatorioController.pegarTodasOrdensServicos);
+router.get('/relatorios/apontamentos', autenticadorMiddleware, apenasAdmin, relatorioController.pegarTodosApontamentos);
+router.get('/relatorios/usuarios', autenticadorMiddleware, apenasAdmin, relatorioController.pegarTodosUsuarios);
 
 export default router;
