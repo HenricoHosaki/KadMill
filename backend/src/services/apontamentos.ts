@@ -18,7 +18,7 @@ export class ApontamentoService{
             where: {id}
         });
 
-        if(idApontamentoPego){
+        if(!idApontamentoPego){
             throw new AppError("Id de apontamento não encontrado", 404)
         }
         return idApontamentoPego

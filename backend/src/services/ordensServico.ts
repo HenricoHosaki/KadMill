@@ -8,7 +8,7 @@ export class OrdemServicoService{
         const todasOrdensServicos = await prisma.ordemServico.findMany();
         
         if(todasOrdensServicos.length === 0){
-            throw new AppError("Não foi possível criar a ordem de serviço", 404)
+            throw new AppError("Nenhuma ordem de serviço encontrada", 404)
         };
         return todasOrdensServicos
     };
