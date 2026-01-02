@@ -1,34 +1,66 @@
 import { prisma } from "../config/prisma";
 import { Prisma, Fornecedor } from "@prisma/client";
+import { AppError } from "../errors/appError";
 
 export class FornecedorService{
 
     async pegarTodosFornecedores(): Promise<Fornecedor[]>{
-            return await prisma.fornecedor.findMany();
+        const todosFornecedores = await prisma.fornecedor.findMany();
+        
+        if(todosFornecedores.length === 0){
+            throw new AppError("Nenhum fornecedor encontrado", 404)
+        };
+        return todosFornecedores
     };
 
     async pegarFornecedorPorId(id: number): Promise<Fornecedor | null>{
-            return await prisma.fornecedor.findUnique({
+        const idFornecedorPego = await prisma.fornecedor.findUnique({
             where: {id}
         });
+        if(!idFornecedorPego){
+            throw new AppError("Id de fornecedor não encontrado", 404)
+        };
+        return idFornecedorPego
     };
 
     async adicionarFornecedor(FornecedorData: Prisma.FornecedorCreateInput): Promise<Fornecedor>{
-            return await prisma.fornecedor.create({
+        const fornecedorCriado = await prisma.fornecedor.create({
             data: FornecedorData
         });
+        if(!fornecedorCriado){
+            throw new AppError("Não foi possível criar o fornecedor")
+        };
+        return fornecedorCriado
     };
 
     async atualizarFornecedor(id: number, FornecedorData: Prisma.FornecedorUpdateInput): Promise<Fornecedor>{
-            return await prisma.fornecedor.update({
+        const fornecedorExiste = await prisma.usuario.findUnique({
+            where: { id }
+        });
+        
+        if(!fornecedorExiste){
+            throw new AppError("Id de fornecedor não existe", 404)
+        }
+        
+        const atualizaFornecedor = await prisma.fornecedor.update({
             where: {id},
             data: FornecedorData
         });
+        return atualizaFornecedor
     };
 
     async deletarFornecedor(id: number): Promise<Fornecedor>{
-            return await prisma.fornecedor.delete({
+        const fornecedorExiste = await prisma.usuario.findUnique({
+            where: { id }
+        });
+        
+        if(!fornecedorExiste){
+            throw new AppError("Id de fornecedor não existe", 404)
+        }
+        
+        const deletaFornecedor = await prisma.fornecedor.delete({
             where: {id}
         });
+        return deletaFornecedor
     };
 };

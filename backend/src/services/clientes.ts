@@ -1,34 +1,68 @@
 import { prisma } from "../config/prisma";
 import { Prisma, Cliente } from "@prisma/client";
+import { AppError } from "../errors/appError"
 
 export class ClienteService{
 
     async pegarTodosClientes(): Promise<Cliente[]>{
-        return await prisma.cliente.findMany();
+        const todosCliente = await prisma.cliente.findMany();
+        
+        if(todosCliente.length === 0){
+            throw new AppError("Nenhum cliente encontrado", 404)
+        };
+        return todosCliente
     };
 
     async pegarClientePorId(id: number): Promise<Cliente | null>{
-        return await prisma.cliente.findUnique({
+        const idClientePego = await prisma.cliente.findUnique({
             where: {id}
         });
+
+        if(!idClientePego){
+            throw new AppError("Id de cliente não encontrado", 404)
+        };
+        return idClientePego
     };
 
     async adicionarCliente(ClienteData: Prisma.ClienteCreateInput): Promise<Cliente>{
-        return await prisma.cliente.create({
+        const clienteCriado = await prisma.cliente.create({
             data: ClienteData
         });
+
+        if(!clienteCriado){
+            throw new AppError("Não foi possível criar o cliente")
+        };
+        return clienteCriado
     };
 
     async atualizarCliente(id: number, ClienteData: Prisma.ClienteUpdateInput): Promise<Cliente>{
-        return await prisma.cliente.update({
+        const clienteExiste = await prisma.usuario.findUnique({
+            where: { id }
+        });
+
+        if(!clienteExiste){
+            throw new AppError("Id de cliente não encontrado", 404)
+        };
+
+        const atualizaCliente = await prisma.cliente.update({
             where: {id},
             data: ClienteData
         });
+        return atualizaCliente
     };
 
     async deletarCliente(id: number): Promise<Cliente>{
-        return await prisma.cliente.delete({
+        const clienteExiste = await prisma.usuario.findUnique({
+            where: { id }
+        });
+
+        if(!clienteExiste){
+            throw new AppError("Id de cliente não encontrado", 404)
+        };
+        
+        const deletaUsuario = await prisma.cliente.delete({
             where: {id}
         });
+        return deletaUsuario
     };
 };

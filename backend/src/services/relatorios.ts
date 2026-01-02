@@ -1,17 +1,34 @@
 import { prisma } from "../config/prisma";
 import { Prisma, Apontamento, Usuario, OrdemServico } from "@prisma/client";
+import { AppError } from "../errors/appError";
+import { todo } from "node:test";
 
 export class RelatorioService{
 
     async pegarTodosApontamentos(): Promise<Apontamento[]>{
-        return await prisma.apontamento.findMany();
-    }
+        const todosApontamentos = await prisma.apontamento.findMany();
+        
+        if(todosApontamentos.length === 0){
+            throw new AppError("Nenhum apontamento encontrado", 404)
+        };
+        return todosApontamentos
+    };
 
     async pegarTodosUsuarios(): Promise<Usuario[]>{
-        return await prisma.usuario.findMany();
-    }
+        const todosUsuarios = await prisma.usuario.findMany();
+
+        if(todosUsuarios.length === 0){
+            throw new AppError("Nenhum usuário encontrado", 404)
+        };
+        return todosUsuarios
+    };
 
     async pegarTodasOrdensServicos(): Promise<OrdemServico[]>{
-        return await prisma.ordemServico.findMany();
-    }
+        const todasOrdensServicos = await prisma.ordemServico.findMany();
+
+        if(todasOrdensServicos.length === 0){
+            throw new AppError("Nenhuma ordem de serviço encontrada", 404)
+        };
+        return todasOrdensServicos
+    };
 }
