@@ -34,7 +34,7 @@ export class FornecedorService{
     };
 
     async atualizarFornecedor(id: number, FornecedorData: Prisma.FornecedorUpdateInput): Promise<Fornecedor>{
-        const fornecedorExiste = await prisma.usuario.findUnique({
+        const fornecedorExiste = await prisma.fornecedor.findUnique({
             where: { id }
         });
         
@@ -50,7 +50,7 @@ export class FornecedorService{
     };
 
     async deletarFornecedor(id: number): Promise<Fornecedor>{
-        const fornecedorExiste = await prisma.usuario.findUnique({
+        const fornecedorExiste = await prisma.fornecedor.findUnique({
             where: { id }
         });
         

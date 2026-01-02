@@ -37,7 +37,7 @@ export class ApontamentoService{
 
     async atualizarApontamento(id: number, apontamentoData: Prisma.ApontamentoUpdateInput): Promise<Apontamento> {
         
-        const apontamentoExiste = await prisma.usuario.findUnique({
+        const apontamentoExiste = await prisma.apontamento.findUnique({
             where: { id }
         })
 
@@ -53,7 +53,7 @@ export class ApontamentoService{
     };
         
     async deletarApontamento(id: number): Promise<Apontamento> {
-            const apontamentoExiste = await prisma.usuario.findUnique({
+            const apontamentoExiste = await prisma.apontamento.findUnique({
                 where: { id }
             })
             

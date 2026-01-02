@@ -35,7 +35,7 @@ export class ProdutoService{
     };
 
     async atualizarProduto(id: number, ProdutoData: Prisma.ProdutoUpdateInput): Promise<Produto>{
-        const produtoExiste = await prisma.usuario.findUnique({
+        const produtoExiste = await prisma.produto.findUnique({
             where: { id }
         })
 
@@ -51,7 +51,7 @@ export class ProdutoService{
     };
 
     async deletarProduto(id: number): Promise<Produto>{
-        const produtoExiste = await prisma.usuario.findUnique({
+        const produtoExiste = await prisma.produto.findUnique({
             where: { id }
         })
 

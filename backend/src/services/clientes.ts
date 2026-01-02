@@ -36,7 +36,7 @@ export class ClienteService{
     };
 
     async atualizarCliente(id: number, ClienteData: Prisma.ClienteUpdateInput): Promise<Cliente>{
-        const clienteExiste = await prisma.usuario.findUnique({
+        const clienteExiste = await prisma.cliente.findUnique({
             where: { id }
         });
 
@@ -52,7 +52,7 @@ export class ClienteService{
     };
 
     async deletarCliente(id: number): Promise<Cliente>{
-        const clienteExiste = await prisma.usuario.findUnique({
+        const clienteExiste = await prisma.cliente.findUnique({
             where: { id }
         });
 
@@ -60,9 +60,9 @@ export class ClienteService{
             throw new AppError("Id de cliente não encontrado", 404)
         };
         
-        const deletaUsuario = await prisma.cliente.delete({
+        const deletacliente = await prisma.cliente.delete({
             where: {id}
         });
-        return deletaUsuario
+        return deletacliente
     };
 };

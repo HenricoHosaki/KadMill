@@ -35,7 +35,7 @@ export class MateriaPrimaService{
     };
 
     async atualizarMateriaPrima(id: number, MateriaPrimaData: Prisma.MateriaPrimaUpdateInput): Promise<MateriaPrima>{
-        const materiaPrimaExiste = await prisma.usuario.findUnique({
+        const materiaPrimaExiste = await prisma.materiaPrima.findUnique({
             where: { id }
         });
         
@@ -51,7 +51,7 @@ export class MateriaPrimaService{
     };
 
     async deletarMateriaPrima(id: number): Promise<MateriaPrima>{
-        const materiaPrimaExiste = await prisma.usuario.findUnique({
+        const materiaPrimaExiste = await prisma.materiaPrima.findUnique({
             where: { id }
         });
         

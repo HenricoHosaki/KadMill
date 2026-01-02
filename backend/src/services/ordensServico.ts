@@ -36,7 +36,7 @@ export class OrdemServicoService{
     };
 
     async atualizarOrdemServico(id: number, OrdemServicoData: Prisma.OrdemServicoUpdateInput): Promise<OrdemServico>{
-        const OrdemServicoExiste = await prisma.usuario.findUnique({
+        const OrdemServicoExiste = await prisma.ordemServico.findUnique({
             where: { id }
         });
 
@@ -52,7 +52,7 @@ export class OrdemServicoService{
     };
 
     async deletarOrdemServico(id: number): Promise<OrdemServico>{
-        const OrdemServicoExiste = await prisma.usuario.findUnique({
+        const OrdemServicoExiste = await prisma.ordemServico.findUnique({
             where: { id }
         });
 
