@@ -40,10 +40,11 @@ export class AuthController {
     )
 
     return res.status(200).json({ token })
-  }catch(err){
-    return res.status(500).json({
-      error: "Erro interno do servidor"
-    })
+  }catch (err) {
+  console.error("Erro detalhado no Login:", err); // Adicione esta linha
+  return res.status(500).json({
+    error: "Erro interno do servidor"
+    });
   }
   }
 }

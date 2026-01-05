@@ -4,10 +4,10 @@ import { AdministradorController } from '../controllers/administradores';
 import { apenasAdmin, autenticadorMiddleware } from '../middlewares/authMiddeware';
 const administradorController = new AdministradorController();
 
-router.get('/administradores', autenticadorMiddleware, apenasAdmin, administradorController.pegarTodosUsuarios);
-router.get('/administradores/:id', autenticadorMiddleware, apenasAdmin, administradorController.pegarUsuarioPorId);
-router.post('/administradores', autenticadorMiddleware, apenasAdmin, administradorController. criarUsuario);
-router.put('/administradores/:id', autenticadorMiddleware, apenasAdmin, administradorController.atualizarUsuario);
-router.delete('/administradores/:id', autenticadorMiddleware, apenasAdmin, administradorController.deletarUsuario);
+router.get('/administradores', autenticadorMiddleware, apenasAdmin,(req, res) => administradorController.pegarTodosUsuarios(req, res));
+router.get('/administradores/:id', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController.pegarUsuarioPorId(req, res));
+router.post('/administradores', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController. criarUsuario(req, res));
+router.put('/administradores/:id', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController.atualizarUsuario(req, res));
+router.delete('/administradores/:id', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController.deletarUsuario(req, res));
 
 export default router;

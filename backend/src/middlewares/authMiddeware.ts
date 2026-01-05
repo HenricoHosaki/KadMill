@@ -43,13 +43,13 @@ export async function autenticadorMiddleware(req: Request, res: Response, next: 
   return res.status(401).json({ error: "Token malformado" });
   }
 
+  try {
   const tokenBlacklisted = await redis.get(token);
 
   if (tokenBlacklisted) {
   return res.status(401).json({ error: "Token revogado" });
   }
 
-  try {
       const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET as string
@@ -61,8 +61,9 @@ export async function autenticadorMiddleware(req: Request, res: Response, next: 
     };
 
     return next();
-  } catch {
-    return res.status(401).json({ error: "Token inválido ou expirado" });
+  } catch (error: any) {
+    console.error("DEBUG - Erro no Middleware:", error.message);
+    return res.status(500).json({ error: "Erro interno", message: error.message });
   }
 }
 
