@@ -1,3 +1,4 @@
+/* frontend/src/index.css */
 * {
   margin: 0;
   padding: 0;
@@ -6,6 +7,13 @@
 
 body {
   font-family: 'Inter', sans-serif;
+  background-color: rgba(6, 15, 48, 1);
   margin: 0;
-  background-color:rgba(6, 15, 48, 1);
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
 }

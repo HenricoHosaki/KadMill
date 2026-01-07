@@ -39,7 +39,7 @@ const Login: React.FC = () => {
             <input type="number" value={id} onChange={(e) => setId(e.target.value)} required />
           </div>
           <div className="input-group">
-            <label>PALAVRA-PASSE</label>
+            <label>SENHA</label>
             <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
           </div>
           {erro && <div className="login-error">{erro}</div>}
