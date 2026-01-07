@@ -145,31 +145,47 @@
 
 /* frontend/src/App.css */
 
+/* Sistema de Abas com Espaçamento Horizontal e Vertical */
 .tabs {
   display: flex;
-  margin-bottom: 0;
-  gap: 12px; /* Espaçamento igual ao da sidebar para consistência */
+  margin-bottom: 25px; /* Cria o espaçamento vertical entre as abas e a tabela */
+  gap: 12px;          /* Mantém o espaçamento horizontal entre os botões */
 }
 
 .tabs button {
-  padding: 10px 25px;
-  background-color: #30475e; /* Fundo azul industrial para abas inativas */
+  padding: 12px 25px;
+  background-color: #30475e; /* Fundo azul industrial */
   color: #fff;
   border: 1px solid #000;
-  border-bottom: none;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
-  transition: 0.2s;
-  border-radius: 4px 4px 0 0; /* Cantos arredondados apenas no topo */
+  transition: all 0.2s ease-in-out;
+  border-radius: 4px; /* Cantos arredondados em todos os lados para parecerem botões independentes */
+  text-transform: uppercase;
 }
 
-.tabs button.active, .tabs button.selected {
-  background-color: #c5a059; /* Dourado para a aba ativa */
+/* Estado da Aba Selecionada (Dourado KadMill) */
+.tabs button.active, 
+.tabs button.selected {
+  background-color: #c5a059; 
   color: #000;
   border-color: #000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra para dar profundidade */
 }
 
+.tabs button:hover:not(.selected) {
+  background-color: #3e5b7a;
+  transform: translateY(-2px); /* Pequeno efeito de elevação no hover */
+}
+
+/* Ajuste no Header da Página para não comprimir o espaço */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px; /* Espaçamento adicional se necessário */
+}
 /* Tabela KadMill Estilo Industrial */
 .table-container {
   background-color: #ffffff;
