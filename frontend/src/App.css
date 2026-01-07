@@ -1,42 +1,77 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* frontend/src/App.css */
+
+/* Centraliza o conteúdo na tela */
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0b192e; /* Azul marinho profundo */
+}
+
+/* Caixa de Login */
+.login-box {
+  background-color: #1a2a40; /* Azul industrial */
+  padding: 40px;
+  border-radius: 8px;
+  border-top: 6px solid #c5a059; /* Faixa dourada superior */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 400px;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.login-header h1 {
+  color: #c5a059;
+  font-size: 2.2rem;
+  margin-bottom: 5px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.login-header span {
+  color: #8892b0;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 30px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Estilo dos campos */
+.input-group {
+  margin-bottom: 20px;
+  text-align: left;
 }
 
-.card {
-  padding: 2em;
+.input-group label {
+  display: block;
+  color: #c5a059;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 8px;
 }
 
-.read-the-docs {
-  color: #888;
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #233554;
+  background-color: #ffffff;
+  color: #000;
+  border-radius: 4px;
+}
+
+/* Botão Entrar */
+.login-button {
+  width: 100%;
+  padding: 14px;
+  background-color: #c5a059;
+  color: #0b192e;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: 0.3s;
+}
+
+.login-button:hover {
+  background-color: #d4b475;
 }

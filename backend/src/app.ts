@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
 import clientesRoutes from './routes/clientes';
@@ -14,7 +15,7 @@ import { errorHandler } from './middlewares/globalLogs';
 
 async function start() {
   const app = express();
-
+  app.use(cors());
   app.use(express.json());
 
   app.use(clientesRoutes);

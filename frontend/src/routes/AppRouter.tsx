@@ -1,20 +1,29 @@
-/* Ele é responsável por controlar todas as rotas (páginas) do sistema.
-Em outras palavras, o React Router olha a URL atual e 
-decide qual componente renderizar (por exemplo, /login → Login, /clientes → Clientes). */
-
+// frontend/src/routes/AppRouter.tsx
 import React from "react";
-import type { ReactNode } from "react";
-import { Routes, Route, Navigate } from "react-router-dom"; //componentes do React Router para definir rotas
-/*import Login from "../pages/Login";
-import Contatos from "../pages/Contatos";
-import Relatorios from "../pages/Relatorios";
-import Administrador from "../pages/Administrador";
-import Estoque from "../pages/Estoque";
-*/
+import { Routes, Route, Navigate } from "react-router-dom";
+import Layout from "../components/Layout";
 import Home from "../pages/Home";
+import Estoque from "../pages/Estoque";
+import Contatos from "../pages/Contatos";
+import Login from "../pages/Login";
 
-const isAuthenticated = () =>!!localStorage.getItem("kadmill:token");
+const isAuthenticated = () => !!localStorage.getItem("kadmill:token");
 
-const PrivateRoute = ({ children }: { children: ReactNode }) => {
-  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+  return isAuthenticated() ? <Layout>{children}</Layout> : <Navigate to="/login" replace />;
 };
+
+const AppRouter: React.FC = () => {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+      <Route path="/estoque" element={<PrivateRoute><Estoque /></PrivateRoute>} />
+      <Route path="/contatos" element={<PrivateRoute><Contatos /></PrivateRoute>} />
+      {/* Redirecionar qualquer rota não encontrada para a Home */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
+
+export default AppRouter;

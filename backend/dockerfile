@@ -1,0 +1,15 @@
+FROM node:24
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+RUN apt-get update && apt-get install -y postgresql-client
+
+COPY . .
+
+EXPOSE 3333
+
+CMD [ "npm", "start"]
