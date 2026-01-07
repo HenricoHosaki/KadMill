@@ -7,8 +7,12 @@
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #0b192e; /* Azul marinho profundo do protótipo */
+  background-color: #0b192e; /* Azul marinho profundo */
   color: #e1e1e1;
   min-height: 100vh;
-  display: block; /* Remove o display: flex padrão do Vite */
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
 }

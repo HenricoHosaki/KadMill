@@ -13,21 +13,12 @@ const Login: React.FC = () => {
     e.preventDefault();
     setErro("");
     setCarregando(true);
-
     try {
-      // O seu backend espera { id, senha } no corpo da requisição
-      const response = await api.post("/login", {
-        id: Number(id),
-        senha
-      });
-
-      // Guarda o token com a chave configurada no interceptor
+      const response = await api.post("/login", { id: Number(id), senha });
       localStorage.setItem("kadmill:token", response.data.token);
-      
-      // Redireciona para a página inicial
       navigate("/");
     } catch (err: any) {
-      setErro(err.response?.data?.message || "Erro ao realizar login. Verifique as credenciais.");
+      setErro(err.response?.data?.message || "ID ou senha inválidos.");
     } finally {
       setCarregando(false);
     }
@@ -37,46 +28,26 @@ const Login: React.FC = () => {
     <div className="login-wrapper">
       <div className="login-box">
         <div className="login-header">
-          <img src="/vite.svg" alt="KadMill Logo" className="login-logo" />
-          <h1>KadMill</h1>
-          <span>Sistema de Gestão Industrial</span>
+          {/* Logo do projeto na parte de login */}
+          <img src="/logo.png" alt="KadMill Logo" className="login-logo-img" />
+          <h1>KADMILL</h1>
+          <span>SISTEMA DE GESTÃO INDUSTRIAL</span>
         </div>
 
         <form onSubmit={handleLogin} className="login-form">
           <div className="input-group">
-            <label htmlFor="usuarioId">ID de Usuário</label>
-            <input
-              id="usuarioId"
-              type="number"
-              placeholder="Ex: 1"
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              required
-            />
+            <label>ID DE USUÁRIO</label>
+            <input type="number" value={id} onChange={(e) => setId(e.target.value)} required />
           </div>
-
           <div className="input-group">
-            <label htmlFor="senha">Palavra-passe</label>
-            <input
-              id="senha"
-              type="password"
-              placeholder="••••••••"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-            />
+            <label>PALAVRA-PASSE</label>
+            <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
           </div>
-
           {erro && <p className="login-error">{erro}</p>}
-
           <button type="submit" className="login-button" disabled={carregando}>
-            {carregando ? "A entrar..." : "Entrar"}
+            {carregando ? "A AUTENTICAR..." : "ENTRAR NO SISTEMA"}
           </button>
         </form>
-        
-        <div className="login-footer">
-          <p>Usinagem KadMill &copy; 2025</p>
-        </div>
       </div>
     </div>
   );
