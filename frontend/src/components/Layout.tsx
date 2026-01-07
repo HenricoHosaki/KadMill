@@ -1,9 +1,18 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import logo from "../assets/Logo_Kadmill.png"; // Usa o asset que você adicionou
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Recupera o ID ou info do usuário se estiver salvo no localStorage
+  const userId = localStorage.getItem("kadmill:userId") || "Usuário";
+
+  const handleLogout = () => {
+    localStorage.removeItem("kadmill:token");
+    localStorage.removeItem("kadmill:userId");
+    navigate("/login");
+  };
 
   const renderSidebarActions = () => {
     if (location.pathname === "/contatos") {
@@ -28,16 +37,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="app-container">
       <header className="top-nav">
         <div className="nav-left-group">
-          {/* Logo no canto esquerdo como link para Início */}
-          <Link to="/" className="nav-logo-link">
-            <img src={logo} alt="KadMill" className="nav-logo-img" />
-          </Link>
-          
-          {/* Menu ao lado da logo */}
+          {/* Links de navegação incluindo o novo botão Início */}
           <nav className="header-links">
+            <Link to="/" className={location.pathname === "/" ? "active" : ""}>Início</Link>
             <Link to="/estoque" className={location.pathname === "/estoque" ? "active" : ""}>Estoque</Link>
             <Link to="/contatos" className={location.pathname === "/contatos" ? "active" : ""}>Contatos</Link>
           </nav>
+        </div>
+
+        {/* Seção da direita: Usuário e Sair */}
+        <div className="nav-user-info">
+          <span className="user-name">Logado como: <strong>ID {userId}</strong></span>
+          <button onClick={handleLogout} className="logout-button">Sair</button>
         </div>
       </header>
       
