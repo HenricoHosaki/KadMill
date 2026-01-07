@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import logo from "../assets/Logo_Kadmill.png"; // Importação do asset
 
 const Login: React.FC = () => {
   const [id, setId] = useState("");
@@ -18,7 +19,7 @@ const Login: React.FC = () => {
       localStorage.setItem("kadmill:token", response.data.token);
       navigate("/");
     } catch (err: any) {
-      setErro(err.response?.data?.message || "ID ou senha inválidos.");
+      setErro(err.response?.data?.message || "Erro ao entrar no sistema.");
     } finally {
       setCarregando(false);
     }
@@ -28,12 +29,10 @@ const Login: React.FC = () => {
     <div className="login-wrapper">
       <div className="login-box">
         <div className="login-header">
-          {/* Logo do projeto na parte de login */}
-          <img src="/logo.png" alt="KadMill Logo" className="login-logo-img" />
+          <img src={logo} alt="KadMill Logo" className="login-logo-img" />
           <h1>KADMILL</h1>
           <span>SISTEMA DE GESTÃO INDUSTRIAL</span>
         </div>
-
         <form onSubmit={handleLogin} className="login-form">
           <div className="input-group">
             <label>ID DE USUÁRIO</label>
@@ -43,9 +42,9 @@ const Login: React.FC = () => {
             <label>PALAVRA-PASSE</label>
             <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
           </div>
-          {erro && <p className="login-error">{erro}</p>}
+          {erro && <div className="login-error">{erro}</div>}
           <button type="submit" className="login-button" disabled={carregando}>
-            {carregando ? "A AUTENTICAR..." : "ENTRAR NO SISTEMA"}
+            {carregando ? "A AUTENTICAR..." : "ENTRAR"}
           </button>
         </form>
       </div>

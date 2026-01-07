@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import logo from "../assets/Logo_Kadmill.png"; // Usa o asset que você adicionou
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
@@ -26,14 +27,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="app-container">
       <header className="top-nav">
-        {/* Início através da logo */}
-        <Link to="/" className="nav-logo-link">
-          <img src="/logo.png" alt="KadMill" className="nav-logo-img" />
-        </Link>
-        <nav>
-          <Link to="/estoque" className={location.pathname === "/estoque" ? "active" : ""}>Estoque</Link>
-          <Link to="/contatos" className={location.pathname === "/contatos" ? "active" : ""}>Contatos</Link>
-        </nav>
+        <div className="nav-left-group">
+          {/* Logo no canto esquerdo como link para Início */}
+          <Link to="/" className="nav-logo-link">
+            <img src={logo} alt="KadMill" className="nav-logo-img" />
+          </Link>
+          
+          {/* Menu ao lado da logo */}
+          <nav className="header-links">
+            <Link to="/estoque" className={location.pathname === "/estoque" ? "active" : ""}>Estoque</Link>
+            <Link to="/contatos" className={location.pathname === "/contatos" ? "active" : ""}>Contatos</Link>
+          </nav>
+        </div>
       </header>
       
       <div className="main-content">
