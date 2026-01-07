@@ -61,39 +61,67 @@
   padding-bottom: 4px;
 }
 
-/* SIDEBAR */
-.sidebar {
-  width: 260px;
-  background-color: #ffffff;
-  color: #333333;
+/* --- SIDEBAR INDUSTRIAL ATUALIZADA --- */
+.sidebar { 
+  width: 260px; 
+  background: #ffffff; 
+  border-right: 1px solid #ddd; 
+  display: flex; 
+  flex-direction: column; 
+  padding-top: 25px; /* Espaço inicial no topo da barra */
+}
+
+.sidebar-content {
+  flex: 1;
+}
+
+/* Container da lista de ações */
+.sidebar-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #ddd;
+  gap: 12px; /* Adiciona o espaçamento vertical real entre as opções */
 }
 
-.sidebar-action {
+.sidebar-content li {
   width: 100%;
-  text-align: left;
-  padding: 15px 25px;
-  background: none;
-  border: none;
-  border-bottom: 1px solid #eee;
-  color: #333;
-  cursor: pointer;
-  font-weight: 500;
+  padding: 0 15px; /* Margem interna para os botões não tocarem as bordas da sidebar */
 }
 
-.sidebar-action:hover {
-  background-color: #f9f9f9;
-  color: #c5a059;
+/* Botão de Ação Estilizado */
+.sidebar-action { 
+  width: 100%; 
+  text-align: left; 
+  padding: 14px 20px; 
+  background-color: #f8f9fa; /* Fundo leve para destacar o botão como item individual */
+  border: 1px solid #eee;
+  border-radius: 4px; /* Cantos levemente arredondados para um ar industrial limpo */
+  color: #333333; 
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer; 
+  transition: all 0.2s ease-in-out;
+  text-transform: capitalize;
 }
 
+/* Efeito de Hover (Dourado Kadmill) */
+.sidebar-action:hover { 
+  background-color: #c5a059; /* Dourado de destaque */
+  color: #ffffff; 
+  border-color: #c5a059;
+  transform: translateX(5px); /* Pequeno deslocamento para feedback visual */
+}
+
+/* Rodapé de Logs */
 .log-footer {
   padding: 15px 25px;
   background-color: #f0f0f0;
   font-size: 0.75rem;
   color: #666;
   border-top: 1px solid #ddd;
+  font-family: monospace;
 }
 
 /* ESTILOS DE LOGIN (MANTIDOS) */
@@ -117,29 +145,29 @@
 
 /* frontend/src/App.css */
 
-/* Sistema de Abas (Tabs) */
 .tabs {
   display: flex;
-  margin-bottom: 0; /* Colado na tabela */
-  gap: 2px;
+  margin-bottom: 0;
+  gap: 12px; /* Espaçamento igual ao da sidebar para consistência */
 }
 
 .tabs button {
   padding: 10px 25px;
-  background-color: #ffffff;
-  color: #333;
-  border: 1px solid #ddd;
+  background-color: #30475e; /* Fundo azul industrial para abas inativas */
+  color: #fff;
+  border: 1px solid #000;
   border-bottom: none;
   cursor: pointer;
   font-weight: 600;
   font-size: 0.85rem;
   transition: 0.2s;
+  border-radius: 4px 4px 0 0; /* Cantos arredondados apenas no topo */
 }
 
 .tabs button.active, .tabs button.selected {
-  background-color: #c5a059; /* Dourado do protótipo */
+  background-color: #c5a059; /* Dourado para a aba ativa */
   color: #000;
-  border-color: #c5a059;
+  border-color: #000;
 }
 
 /* Tabela KadMill Estilo Industrial */
