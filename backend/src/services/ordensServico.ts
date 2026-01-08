@@ -4,14 +4,21 @@ import { AppError } from "../errors/appError";
 
 export class OrdemServicoService{
 
-    async pegarTodasOrdensServicos(): Promise<OrdemServico[]>{
-        const todasOrdensServicos = await prisma.ordemServico.findMany();
-        
-        if(todasOrdensServicos.length === 0){
-            throw new AppError("Nenhuma ordem de serviço encontrada", 404)
-        };
-        return todasOrdensServicos
+    async pegarTodasOrdensServicos(): Promise<OrdemServico[]> {
+    const todasOrdensServicos = await prisma.ordemServico.findMany({
+        include: {
+            cliente: true,
+        },
+        orderBy: {
+            id: 'desc'
+        }
+    });
+    
+    if(todasOrdensServicos.length === 0){
+        throw new AppError("Nenhuma ordem de serviço encontrada", 404)
     };
+    return todasOrdensServicos;
+};
 
     async pegarOrdemServicoPorId(id: number): Promise<OrdemServico | null>{
         const idOrdemServicoPego = await prisma.ordemServico.findUnique({

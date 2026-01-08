@@ -1,6 +1,7 @@
 // frontend/src/pages/Estoque.tsx
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
+import Modal from "../components/Modal"; 
 
 type AbaTipo = "PRODUTO" | "MATERIA_PRIMA" | "ORDEM_SERVICO" | "APONTAMENTO";
 
@@ -8,6 +9,10 @@ const Estoque: React.FC = () => {
   const [abaAtiva, setAbaAtiva] = useState<AbaTipo>("MATERIA_PRIMA");
   const [dados, setDados] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Estados para controlar qual item está selecionado para o Modal
+  const [osSelecionada, setOsSelecionada] = useState<any | null>(null);
+  const [apontamentoSelecionado, setApontamentoSelecionado] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,17 +107,27 @@ const Estoque: React.FC = () => {
         );
       case "ORDEM_SERVICO":
         return (
-          <tr key={item.id}>
+          <tr 
+            key={item.id} 
+            onClick={() => setOsSelecionada(item)} 
+            style={{ cursor: "pointer" }}
+            title="Clique para ver detalhes completos"
+          >
             <td>OS-{item.id}</td>
-            <td>{item.clienteId}</td> {/* No futuro, o backend deve incluir o nome do cliente */}
+            <td>{item.cliente?.nome || item.clienteId}</td> 
             <td>{new Date(item.data_abertura).toLocaleDateString()}</td>
-            <td>-</td> {/* CNPJ/CPF vindo da relação com cliente */}
+            <td>{item.cliente?.cpf_cnpj || "-"}</td> 
             <td><span className={`status-badge ${item.status}`}>{item.status}</span></td>
           </tr>
         );
       case "APONTAMENTO":
         return (
-          <tr key={item.id}>
+          <tr 
+            key={item.id} 
+            onClick={() => setApontamentoSelecionado(item)} 
+            style={{ cursor: "pointer" }}
+            title="Clique para ver detalhes do apontamento"
+          >
             <td>AP-{item.id}</td>
             <td>OS-{item.ordemServicoId}</td>
             <td>{new Date(item.data_apontamento).toLocaleDateString()}</td>
@@ -149,6 +164,69 @@ const Estoque: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Modal Único para Detalhes da Ordem de Serviço */}
+      <Modal 
+        isOpen={!!osSelecionada} 
+        onClose={() => setOsSelecionada(null)} 
+        title={`Detalhes da Ordem de Serviço #OS-${osSelecionada?.id}`}
+      >
+        {osSelecionada && (
+          <div className="os-details-view">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+              <p><strong>Cliente:</strong> {osSelecionada.cliente?.nome || osSelecionada.clienteId}</p>
+              <p><strong>CNPJ/CPF:</strong> {osSelecionada.cliente?.cpf_cnpj || "-"}</p>
+              <p><strong>Data Abertura:</strong> {new Date(osSelecionada.data_abertura).toLocaleDateString()}</p>
+              <p><strong>Status:</strong> <span className={`status-badge ${osSelecionada.status}`}>{osSelecionada.status}</span></p>
+              <p><strong>Valor Total:</strong> R$ {Number(osSelecionada.valor_total || 0).toFixed(2)}</p>
+            </div>
+
+            <div style={{ marginTop: "15px" }}>
+              <p><strong>Descrição do Serviço:</strong></p>
+              <div style={{ background: "#f4f4f4", padding: "10px", borderRadius: "4px", border: "1px solid #ddd", marginTop: "5px" }}>
+                {osSelecionada.descricao_servico || osSelecionada.descricao || "Nenhuma descrição detalhada."}
+              </div>
+            </div>
+
+            <div style={{ marginTop: "15px" }}>
+              <p><strong>Observações Internas:</strong></p>
+              <p style={{ color: "#666", fontSize: "0.9rem" }}>{osSelecionada.observacao || "Sem observações registradas."}</p>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal para Detalhes do Apontamento */}
+      <Modal
+        isOpen={!!apontamentoSelecionado} 
+        onClose={() => setApontamentoSelecionado(null)} 
+        title={`Detalhes do Apontamento #AP-${apontamentoSelecionado?.id}`}
+      >
+        {apontamentoSelecionado && (
+          <div className="os-details-view">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+              <p><strong>Ordem de Serviço:</strong> OS-{apontamentoSelecionado.ordemServicoId}</p>
+              <p><strong>Operador:</strong> TOR-{apontamentoSelecionado.usuarioId}</p>
+              <p><strong>Data:</strong> {new Date(apontamentoSelecionado.data_apontamento).toLocaleDateString()}</p>
+              <p><strong>Tempo:</strong> {apontamentoSelecionado.tempo_execucao} minutos</p>
+            </div>
+
+            <div style={{ marginTop: "15px", padding: "10px", background: "#f8f9fa", borderRadius: "4px", border: "1px solid #ddd" }}>
+              <h4 style={{ fontSize: "0.9rem", color: "#333", marginBottom: "5px" }}>Produção e Insumos</h4>
+              <p><strong>Qtd. Produzida:</strong> {apontamentoSelecionado.quantidade_produzida} peças</p>
+              <p><strong>Qtd. Matéria Usada:</strong> {apontamentoSelecionado.quantidade_utilizada || 0}</p>
+              <p><strong>Matéria Prima (ID):</strong> {apontamentoSelecionado.materiaPrimaId || "N/A"}</p>
+            </div>
+
+            <div style={{ marginTop: "15px" }}>
+              <p><strong>Observações do Operador:</strong></p>
+              <div style={{ background: "#fffbe6", padding: "10px", borderRadius: "4px", border: "1px solid #ffe58f", color: "#856404", fontSize: "0.9rem" }}>
+                {apontamentoSelecionado.observacao || "Nenhuma observação registrada."}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
