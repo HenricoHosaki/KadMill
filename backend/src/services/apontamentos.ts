@@ -24,16 +24,37 @@ export class ApontamentoService{
         return idApontamentoPego
     };
 
-    async criarApontamento(apontamentoData: Prisma.ApontamentoCreateInput): Promise<Apontamento>{
-            const apontamentoCriado = await prisma.apontamento.create({
-            data: apontamentoData
-        });
+    async criarApontamento(apontamentoData: any): Promise<Apontamento> {
+    const osExiste = await prisma.ordemServico.findUnique({
+        where: { id: apontamentoData.ordemServicoId }
+    });
+    if (!osExiste) throw new AppError("Ordem de Serviço não encontrada", 404);
 
-        if(!apontamentoCriado){
-            throw new AppError("Não foi possível criar o apontamento")
-        }
-        return apontamentoCriado
-    };
+    const usuarioExiste = await prisma.usuario.findUnique({
+        where: { id: apontamentoData.usuarioId }
+    });
+    if (!usuarioExiste) throw new AppError("Operador não encontrado", 404);
+
+    if (apontamentoData.materiaPrimaId) {
+        const mpExiste = await prisma.materiaPrima.findUnique({
+            where: { id: apontamentoData.materiaPrimaId }
+        });
+        if (!mpExiste) throw new AppError("Matéria Prima não encontrada", 404);
+    }
+
+    if (apontamentoData.ferramentaId) {
+        const ferramentaExiste = await prisma.ferramenta.findUnique({
+            where: { id: apontamentoData.ferramentaId }
+        });
+        if (!ferramentaExiste) throw new AppError("Ferramenta não encontrada", 404);
+    }
+
+    const apontamentoCriado = await prisma.apontamento.create({
+        data: apontamentoData
+    });
+
+    return apontamentoCriado;
+};
 
     async atualizarApontamento(id: number, apontamentoData: Prisma.ApontamentoUpdateInput): Promise<Apontamento> {
         

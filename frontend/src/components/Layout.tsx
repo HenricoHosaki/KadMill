@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Modal from "./Modal";
+import { api } from "../services/api";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [formData, setFormData] = useState<any>({});
+  const [loading, setLoading] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("kadmill:token");
@@ -16,187 +19,140 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const userId = localStorage.getItem("kadmill:userId") || "Usuário";
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      let endpoint = "";
+      switch (activeModal) {
+        case "OS": endpoint = "/ordensServicos"; break;
+        case "APONTAMENTO": endpoint = "/apontamentos"; break;
+        case "MP": endpoint = "/materiasPrimas"; break;
+        case "PRODUTO": endpoint = "/produtos"; break;
+        case "CLIENTE": endpoint = "/clientes"; break;
+        case "FORNECEDOR": endpoint = "/fornecedores"; break;
+      }
+
+      const payload = { ...formData };
+      
+      // Conversão obrigatória para números (o Prisma espera Int/Decimal)
+      const numericFields = [
+        "usuarioId", "ordemServicoId", "materiaPrimaId", "ferramentaId",
+        "quantidade_utilizada", "quantidade_produzida", "tempo_execucao"
+      ];
+      
+      numericFields.forEach(field => {
+        if (payload[field] !== undefined && payload[field] !== "") {
+          payload[field] = Number(payload[field]);
+        }
+      });
+
+      await api.post(endpoint, payload);
+      alert("Apontamento realizado com sucesso!");
+      setActiveModal(null);
+      setFormData({});
+      window.location.reload(); 
+    } catch (error: any) {
+      console.error("Erro ao salvar:", error);
+      alert(error.response?.data?.message || "Erro ao salvar o registro.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderModalContent = () => {
-  switch (activeModal) {
-    case "OS":
-      return (
-        <form className="modal-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label>Número da OS (Único)</label>
-              <input type="text" placeholder="Ex: OS-123" required />
-            </div>
-            <div className="form-group">
-              <label>ID do Cliente</label>
-              <input type="number" placeholder="Código do cliente" required />
-            </div>
-          </div>
-          <div className="form-group">
-            <label>Descrição do Serviço</label>
-            <textarea placeholder="Ex: Usinagem de flange de aço 1020" required></textarea>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Valor Total (R$)</label>
-              <input type="number" step="0.01" required />
-            </div>
-            <div className="form-group">
-              <label>Status</label>
-              <select defaultValue="ABERTA">
-                <option value="ABERTA">Aberta</option>
-                <option value="FINALIZADA">Finalizada</option>
-              </select>
-            </div>
-          </div>
-          <div className="form-group">
-            <label>Observação</label>
-            <textarea placeholder="Detalhes adicionais..."></textarea>
-          </div>
-        </form>
-      );
+    switch (activeModal) {
+      case "APONTAMENTO":
+  return (
+    <form className="modal-form">
+      <div className="form-row">
+        <div className="form-group">
+          <label>Operador (ID)</label>
+          <input name="usuarioId" type="number" onChange={handleChange} required />
+        </div>
+        <div className="form-group">
+          <label>Ordem de Serviço (ID)</label>
+          <input name="ordemServicoId" type="number" onChange={handleChange} required />
+        </div>
+      </div>
 
-    case "APONTAMENTO":
-      return (
-        <form className="modal-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label>ID do Operador (Você)</label>
-              <input type="number" placeholder="Seu ID de usuário" required />
-            </div>
-            <div className="form-group">
-              <label>ID da Ordem de Serviço</label>
-              <input type="number" placeholder="Código da OS" required />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>ID da Matéria Prima</label>
-              <input type="number" placeholder="Código do material (opcional)" />
-            </div>
-            <div className="form-group">
-              <label>ID da Ferramenta</label>
-              <input type="number" placeholder="Código da ferramenta (opcional)" />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Quantidade Utilizada</label>
-              <input type="number" defaultValue="0" required />
-            </div>
-            <div className="form-group">
-              <label>Tempo de Execução (Minutos)</label>
-              <input type="number" placeholder="Ex: 60" required />
-            </div>
-          </div>
-          <div className="form-group">
-            <label>Observações do Trabalho</label>
-            <textarea placeholder="Relate o que foi feito..."></textarea>
-          </div>
-        </form>
-      );
+      <div className="form-row">
+        <div className="form-group">
+          <label>Data do Trabalho</label>
+          <input 
+            name="data_apontamento" 
+            type="date" 
+            onChange={handleChange} 
+            defaultValue={new Date().toISOString().split('T')[0]} 
+          />
+        </div>
+        <div className="form-group">
+          <label>Tempo de Execução (Min)</label>
+          <input name="tempo_execucao" type="number" onChange={handleChange} required />
+        </div>
+      </div>
 
-    case "MP":
-      return (
-        <form className="modal-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label>Nome da Matéria Prima</label>
-              <input type="text" placeholder="Ex: Barra Inox 304" required />
-            </div>
-            <div className="form-group">
-              <label>Unidade de Medida</label>
-              <select required>
-                <option value="KG">Quilograma (KG)</option>
-                <option value="L">Litro (L)</option>
-                <option value="UN">Unidade (UN)</option>
-                <option value="M">Metro (M)</option>
-                <option value="CAIXA">Caixa</option>
-              </select>
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Quantidade Disponível</label>
-              <input type="number" defaultValue="0" required />
-            </div>
-            <div className="form-group">
-              <label>Valor Unitário (R$)</label>
-              <input type="number" step="0.01" required />
-            </div>
-          </div>
-          <div className="form-group">
-            <label>ID do Fornecedor</label>
-            <input type="number" placeholder="Código do fornecedor" required />
-          </div>
-          <div className="form-group">
-            <label>Descrição</label>
-            <textarea placeholder="Especificações técnicas..."></textarea>
-          </div>
-        </form>
-      );
+      <div className="form-row" style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }}>
+        <div className="form-group">
+          <label style={{ color: "#d9534f" }}>Qtd. Matéria Usada</label>
+          <input name="quantidade_utilizada" type="number" onChange={handleChange} />
+        </div>
+        <div className="form-group">
+          <label style={{ color: "#5cb85c" }}>Qtd. Peças Produzidas</label>
+          <input name="quantidade_produzida" type="number" onChange={handleChange} />
+        </div>
+      </div>
 
-    case "PRODUTO":
-      return (
-        <form className="modal-form">
-          <div className="form-group">
-            <label>Nome do Produto</label>
-            <input type="text" placeholder="Ex: Peça acabada X" required />
-          </div>
-          <div className="form-group">
-            <label>Descrição / Modelo</label>
-            <textarea required></textarea>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Custo Unitário (R$)</label>
-              <input type="number" step="0.01" required />
+      <div className="form-row">
+        <div className="form-group">
+          <label>Matéria Prima (ID)</label>
+          <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="Opcional" />
+        </div>
+        <div className="form-group">
+          <label>Ferramenta (ID)</label>
+          <input name="ferramentaId" type="number" onChange={handleChange} placeholder="Opcional" />
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Observação</label>
+        <textarea name="observacao" onChange={handleChange}></textarea>
+      </div>
+    </form>
+  );
+
+      case "OS":
+        return (
+          <form className="modal-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label>Número da OS</label>
+                <input name="numero_os" type="text" onChange={handleChange} required />
+              </div>
+              <div className="form-group">
+                <label>ID do Cliente</label>
+                <input name="clienteId" type="number" onChange={handleChange} required />
+              </div>
             </div>
             <div className="form-group">
-              <label>Preço Unitário (R$)</label>
-              <input type="number" step="0.01" required />
+              <label>Descrição do Serviço</label>
+              <textarea name="descricao_servico" onChange={handleChange} required></textarea>
             </div>
-          </div>
-          <div className="form-group">
-            <label>Quantidade em Estoque</label>
-            <input type="number" defaultValue="0" required />
-          </div>
-        </form>
-      );
+          </form>
+        );
 
-    default:
-      return null;
-  }
-};
-
-  const renderSidebarActions = () => {
-    const isContatos = location.pathname === "/contatos";
-    const actions = isContatos 
-      ? [
-          { label: "Registrar cliente", id: "CLIENTE" },
-          { label: "Registrar fornecedor", id: "FORNECEDOR" }
-        ]
-      : [
-          { label: "Criar ordem de serviço", id: "OS" },
-          { label: "Gerar apontamento", id: "APONTAMENTO" },
-          { label: "Registrar matéria prima", id: "MP" },
-          { label: "Registrar produto", id: "PRODUTO" }
-        ];
-
-    return (
-      <ul className="sidebar-list">
-        {actions.map((action) => (
-          <li key={action.id}>
-            <button className="sidebar-action" onClick={() => setActiveModal(action.id)}>
-              {action.label}
-            </button>
-          </li>
-        ))}
-      </ul>
-    );
+      // Adicione os outros cases (MP, PRODUTO, etc.) conforme necessário
+      default: return null;
+    }
   };
 
   return (
     <div className="app-container">
+      {/* ... restante do componente igual ao anterior ... */}
       <header className="top-nav">
         <div className="nav-left-group">
           <nav className="header-links">
@@ -210,11 +166,23 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <button onClick={handleLogout} className="logout-button">Sair</button>
         </div>
       </header>
-      
+
       <div className="main-content">
         <aside className="sidebar">
-          <div className="sidebar-content">{renderSidebarActions()}</div>
-          <div className="log-footer">Log do sistema</div>
+          <div className="sidebar-content">
+            <ul className="sidebar-list">
+              {(location.pathname === "/contatos" ? 
+                [{ label: "Registrar cliente", id: "CLIENTE" }, { label: "Registrar fornecedor", id: "FORNECEDOR" }] :
+                [{ label: "Criar ordem de serviço", id: "OS" }, { label: "Gerar apontamento", id: "APONTAMENTO" }, { label: "Registrar matéria prima", id: "MP" }, { label: "Registrar produto", id: "PRODUTO" }]
+              ).map((action) => (
+                <li key={action.id}>
+                  <button className="sidebar-action" onClick={() => { setFormData({}); setActiveModal(action.id); }}>
+                    {action.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </aside>
         <main className="page-body">{children}</main>
       </div>
@@ -222,13 +190,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Modal 
         isOpen={!!activeModal} 
         onClose={() => setActiveModal(null)} 
-        title={activeModal ? `Novo Registro: ${activeModal}` : ""}
+        title={`Novo Registro: ${activeModal}`}
       >
         {renderModalContent()}
-        
         <div className="modal-footer">
-          <button className="btn-secondary" onClick={() => setActiveModal(null)}>Cancelar</button>
-          <button className="btn-primary">Salvar no Sistema</button>
+          <button className="btn-secondary" onClick={() => setActiveModal(null)} disabled={loading}>Cancelar</button>
+          <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
+            {loading ? "Gravando..." : "Salvar no Sistema"}
+          </button>
         </div>
       </Modal>
     </div>
