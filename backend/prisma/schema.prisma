@@ -140,6 +140,7 @@ model Apontamento {
     materiaPrima MateriaPrima? @relation(fields: [materiaPrimaId], references: [id])
     materiaPrimaId Int?
     quantidade_utilizada Int @default(0)
+    quantidade_produzida Int @default(0)
     data_apontamento DateTime @default(now())
     tempo_execucao Int @default(0)
     observacao String?

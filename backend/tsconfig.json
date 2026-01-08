@@ -49,5 +49,5 @@
   },
   
   // Adicionado para garantir que o compilador processe os arquivos de tipos dentro de src
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "*.ts"]
 }

@@ -331,3 +331,128 @@
 }
 .status-badge.ABERTA { background: #eee; color: #333; }
 .status-badge.FECHADA { background: #c5a059; color: #fff; }
+
+/* ==========================================
+   SISTEMA DE MODAIS (POP-UPS)
+   ========================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7); /* Fundo escurecido */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal-container {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 600px; /* Largura ajustável conforme a foto */
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: modalFadeIn 0.3s ease;
+}
+
+.modal-header {
+  background-color: #0b192e;
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid #c5a059;
+}
+
+.modal-header h2 {
+  color: #c5a059;
+  font-size: 1.2rem;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modal-content {
+  padding: 30px;
+  color: #333;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos Internos do Modal */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.form-group input, 
+.form-group textarea {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.modal-footer {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+/* Botões do Modal */
+.btn-primary {
+  background-color: #c5a059;
+  color: #0b192e;
+  border: none;
+  padding: 10px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.btn-secondary {
+  background-color: #eee;
+  color: #666;
+  border: 1px solid #ddd;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 4px;
+}
