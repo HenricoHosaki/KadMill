@@ -39,10 +39,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       const payload = { ...formData };
       
-      // Conversão obrigatória para números (o Prisma espera Int/Decimal)
+      // Conversão de campos numéricos (IDs e Quantidades)
       const numericFields = [
         "usuarioId", "ordemServicoId", "materiaPrimaId", "ferramentaId",
-        "quantidade_utilizada", "quantidade_produzida", "tempo_execucao"
+        "quantidade_utilizada", "quantidade_produzida", "tempo_execucao", "clienteId"
       ];
       
       numericFields.forEach(field => {
@@ -51,14 +51,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
       });
 
-      await api.post(endpoint, payload);
-      alert("Apontamento realizado com sucesso!");
+      // Conversão da Data para formato ISO (exigido pelo Prisma DateTime)
+      if (payload.data_apontamento) {
+        payload.data_apontamento = new Date(payload.data_apontamento).toISOString();
+      }
+
+      await api.post(endpoint, payload); // Ativa o criarApontamento no backend
+      alert("Registro salvo com sucesso!");
       setActiveModal(null);
       setFormData({});
       window.location.reload(); 
     } catch (error: any) {
       console.error("Erro ao salvar:", error);
-      alert(error.response?.data?.message || "Erro ao salvar o registro.");
+      alert(error.response?.data?.message || "Erro ao salvar o registro. Verifique se os IDs existem.");
     } finally {
       setLoading(false);
     }
@@ -67,63 +72,64 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const renderModalContent = () => {
     switch (activeModal) {
       case "APONTAMENTO":
-  return (
-    <form className="modal-form">
-      <div className="form-row">
-        <div className="form-group">
-          <label>Operador (ID)</label>
-          <input name="usuarioId" type="number" onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label>Ordem de Serviço (ID)</label>
-          <input name="ordemServicoId" type="number" onChange={handleChange} required />
-        </div>
-      </div>
+        return (
+          <form className="modal-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label>Operador (ID)</label>
+                <input name="usuarioId" type="number" onChange={handleChange} required />
+              </div>
+              <div className="form-group">
+                <label>Ordem de Serviço (ID)</label>
+                <input name="ordemServicoId" type="number" onChange={handleChange} required />
+              </div>
+            </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>Data do Trabalho</label>
-          <input 
-            name="data_apontamento" 
-            type="date" 
-            onChange={handleChange} 
-            defaultValue={new Date().toISOString().split('T')[0]} 
-          />
-        </div>
-        <div className="form-group">
-          <label>Tempo de Execução (Min)</label>
-          <input name="tempo_execucao" type="number" onChange={handleChange} required />
-        </div>
-      </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Data do Trabalho</label>
+                <input 
+                  name="data_apontamento" 
+                  type="date" 
+                  onChange={handleChange} 
+                  defaultValue={new Date().toISOString().split('T')[0]} 
+                />
+              </div>
+              <div className="form-group">
+                <label>Tempo de Execução (Min)</label>
+                <input name="tempo_execucao" type="number" onChange={handleChange} required />
+              </div>
+            </div>
 
-      <div className="form-row" style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }}>
-        <div className="form-group">
-          <label style={{ color: "#d9534f" }}>Qtd. Matéria Usada</label>
-          <input name="quantidade_utilizada" type="number" onChange={handleChange} />
-        </div>
-        <div className="form-group">
-          <label style={{ color: "#5cb85c" }}>Qtd. Peças Produzidas</label>
-          <input name="quantidade_produzida" type="number" onChange={handleChange} />
-        </div>
-      </div>
+            {/* CAMPOS DE QUANTIDADE CONFORME SCHEMA.PRISMA */}
+            <div className="form-row" style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }}>
+              <div className="form-group">
+                <label style={{ color: "#d9534f" }}>Qtd. Matéria Usada</label>
+                <input name="quantidade_utilizada" type="number" onChange={handleChange} placeholder="Insumos" />
+              </div>
+              <div className="form-group">
+                <label style={{ color: "#5cb85c" }}>Qtd. Peças Produzidas</label>
+                <input name="quantidade_produzida" type="number" onChange={handleChange} placeholder="Resultado final" />
+              </div>
+            </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label>Matéria Prima (ID)</label>
-          <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="Opcional" />
-        </div>
-        <div className="form-group">
-          <label>Ferramenta (ID)</label>
-          <input name="ferramentaId" type="number" onChange={handleChange} placeholder="Opcional" />
-        </div>
-      </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Matéria Prima (ID)</label>
+                <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="Opcional" />
+              </div>
+              <div className="form-group">
+                <label>Ferramenta (ID)</label>
+                <input name="ferramentaId" type="number" onChange={handleChange} placeholder="Opcional" />
+              </div>
+            </div>
 
-      <div className="form-group">
-        <label>Observação</label>
-        <textarea name="observacao" onChange={handleChange}></textarea>
-      </div>
-    </form>
-  );
+            <div className="form-group">
+              <label>Observação</label>
+              <textarea name="observacao" onChange={handleChange} placeholder="Ex: Quebra de pastilha, atraso na carga..."></textarea>
+            </div>
+          </form>
+        );
 
       case "OS":
         return (
@@ -145,14 +151,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </form>
         );
 
-      // Adicione os outros cases (MP, PRODUTO, etc.) conforme necessário
       default: return null;
     }
   };
 
   return (
     <div className="app-container">
-      {/* ... restante do componente igual ao anterior ... */}
       <header className="top-nav">
         <div className="nav-left-group">
           <nav className="header-links">
