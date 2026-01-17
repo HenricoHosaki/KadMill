@@ -1,5 +1,7 @@
 import { AdministradorService } from './../services/administradores';
 import { Request, Response } from 'express';
+import { spawn } from 'child_process';
+import path from 'path';
 
 const administradorService = new AdministradorService();
 
@@ -116,6 +118,38 @@ export class AdministradorController {
             return res.status(500).json({
                 message: "Erro interno do servidor"
             })
+        }
+    }
+
+    async fazerBackup(req: Request, res: Response) {
+        try {
+            // Pega a URL do banco do arquivo .env
+            const dbUrl = process.env.DATABASE_URL;
+            if (!dbUrl) {
+                return res.status(500).json({ message: "Configuração de banco de dados não encontrada." });
+            }
+
+            res.setHeader('Content-Type', 'application/sql');
+            res.setHeader('Content-Disposition', `attachment; filename=kadmill_backup_${new Date().toISOString().split('T')[0]}.sql`);
+
+            // Executa o pg_dump diretamente no container
+            const pgDump = spawn('pg_dump', [dbUrl]);
+
+            pgDump.stdout.pipe(res);
+
+            pgDump.stderr.on('data', (data) => {
+                console.error(`Erro no backup: ${data}`);
+            });
+
+            pgDump.on('close', (code) => {
+                if (code !== 0) {
+                    console.error(`Processo de backup falhou com código ${code}`);
+                }
+            });
+
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Erro ao gerar backup" });
         }
     }
 }
