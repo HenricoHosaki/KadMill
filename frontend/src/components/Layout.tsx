@@ -2,14 +2,22 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Modal from "./Modal";
 import { api } from "../services/api";
+import { isAdmin } from "../utils/authUtils"; // Certifique-se de ter criado este arquivo conforme o passo anterior
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const userIsAdmin = isAdmin();
   
+  // Estado para o Menu Global (Retrátil)
+  const [navOpen, setNavOpen] = useState(false);
+
+  // Estados existentes para o Menu de Ações (Fixo)
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
+
+  const userId = localStorage.getItem("kadmill:userId") || "Usuário";
 
   const handleLogout = () => {
     localStorage.removeItem("kadmill:token");
@@ -17,13 +25,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     navigate("/login");
   };
 
-  const userId = localStorage.getItem("kadmill:userId") || "Usuário";
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
+  // --- SUA LÓGICA DE SUBMIT ORIGINAL (MANTIDA) ---
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -37,26 +44,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         case "FORNECEDOR": endpoint = "/fornecedores"; break;
       }
 
-      // 1. Cria uma cópia dos dados para manipular antes de enviar
       const payload = { ...formData };
 
-      // 2. Lógica específica para PRODUTO
+      // Lógica específica para PRODUTO
       if (activeModal === "PRODUTO") {
-        // Mapeia 'calculo_custo' (frontend) para 'custo_unitario' (banco)
         if (payload.calculo_custo) {
           payload.custo_unitario = Number(payload.calculo_custo);
-          delete payload.calculo_custo; // Remove o nome antigo para não dar erro na API
+          delete payload.calculo_custo;
         }
-        
-        // Garante valor padrão para unidade se não foi selecionado
         if (!payload.unidade) payload.unidade = "KG";
-
-        // Se o usuário digitou um ID manualmente, converte para número
         if (payload.id) payload.id = Number(payload.id);
-        else delete payload.id; // Se estiver vazio, remove para o banco gerar automático
+        else delete payload.id;
       }
       
-      // 3. Conversão de campos numéricos (Segurança)
       const numericFields = [
         "usuarioId", "ordemServicoId", "materiaPrimaId", "ferramentaId",
         "quantidade_utilizada", "quantidade_produzida", "tempo_execucao", 
@@ -83,12 +83,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
+  // --- SEU CONTEÚDO DE MODAL ORIGINAL (MANTIDO) ---
   const renderModalContent = () => {
     switch (activeModal) {
       case "PRODUTO":
         return (
           <form className="modal-form">
-            {/* Linha 1: Código e Tipo */}
             <div className="form-row">
               <div className="form-group">
                 <label>CÓDIGO</label>
@@ -99,8 +99,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <input name="tipo" type="text" onChange={handleChange} placeholder="Ex: Pinos" required />
               </div>
             </div>
-
-            {/* Linha 2: Modelo e Data de Registro */}
             <div className="form-row">
               <div className="form-group">
                 <label>MODELO</label>
@@ -116,8 +114,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 />
               </div>
             </div>
-
-            {/* Linha 3: Quantidade e Unidade */}
             <div className="form-row" style={{ alignItems: "flex-end" }}>
               <div className="form-group">
                 <label>QUANTIDADE</label>
@@ -134,8 +130,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </select>
               </div>
             </div>
-
-            {/* Linha 4: Preços e Custos */}
             <div className="form-row">
               <div className="form-group">
                 <label>PREÇO UNITÁRIO (R$)</label>
@@ -146,7 +140,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <input name="calculo_custo" type="number" step="0.01" onChange={handleChange} placeholder="30,50" />
               </div>
             </div>
-
             <div className="form-group" style={{ marginTop: "10px" }}>
               <label>NOME COMPLETO / DESCRIÇÃO</label>
               <input name="nome" type="text" onChange={handleChange} placeholder="Ex: Pino de Fixagem Especial" required />
@@ -299,40 +292,102 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
-  return (
-    <div className="app-container">
-      <header className="top-nav">
-        <div className="nav-left-group">
-          <nav className="header-links">
-            <Link to="/" className={location.pathname === "/" ? "active" : ""}>Início</Link>
-            <Link to="/estoque" className={location.pathname === "/estoque" ? "active" : ""}>Estoque</Link>
-            <Link to="/contatos" className={location.pathname === "/contatos" ? "active" : ""}>Contatos</Link>
-          </nav>
-        </div>
-        <div className="nav-user-info">
-          <span className="user-name">Logado como: <strong>ID {userId}</strong></span>
-          <button onClick={handleLogout} className="logout-button">Sair</button>
-        </div>
-      </header>
+  // --- NOVA ESTRUTURA DE NAVEGAÇÃO ---
+  
+  // Define se o menu lateral de ações (o antigo) deve aparecer
+  const showActionSidebar = location.pathname === "/estoque" || location.pathname === "/contatos";
 
-      <div className="main-content">
-        <aside className="sidebar">
-          <div className="sidebar-content">
-            <ul className="sidebar-list">
-              {(location.pathname === "/contatos" ? 
-                [{ label: "Registrar cliente", id: "CLIENTE" }, { label: "Registrar fornecedor", id: "FORNECEDOR" }] :
-                [{ label: "Criar ordem de serviço", id: "OS" }, { label: "Gerar apontamento", id: "APONTAMENTO" }, { label: "Registrar matéria prima", id: "MP" }, { label: "Registrar produto", id: "PRODUTO" }]
-              ).map((action) => (
-                <li key={action.id}>
-                  <button className="sidebar-action" onClick={() => { setFormData({}); setActiveModal(action.id); }}>
-                    {action.label}
-                  </button>
+  return (
+    <div className="root-layout" style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+      
+      {/* 1. NOVO MENU DE NAVEGAÇÃO GLOBAL (Esquerda Extrema, Retrátil) */}
+      <aside className={`global-nav ${!navOpen ? "collapsed" : ""}`}>
+        <div className="nav-header">
+            <button className="toggle-btn" onClick={() => setNavOpen(!navOpen)}>
+               {navOpen ? "◀" : "☰"}
+            </button>
+        </div>
+        <ul className="global-links">
+            <li>
+                <Link to="/" title="Início">
+                    <span className="icon">🏠</span> 
+                    {navOpen && <span>Início</span>}
+                </Link>
+            </li>
+            <li>
+                <Link to="/estoque" title="Estoque">
+                    <span className="icon">📦</span> 
+                    {navOpen && <span>Estoque</span>}
+                </Link>
+            </li>
+            <li>
+                <Link to="/contatos" title="Contatos">
+                    <span className="icon">👥</span> 
+                    {navOpen && <span>Contatos</span>}
+                </Link>
+            </li>
+            {userIsAdmin && (
+                <li>
+                    <Link to="/admin" title="Admin" style={{color: '#c5a059'}}>
+                        <span className="icon">🛡️</span> 
+                        {navOpen && <span>Admin</span>}
+                    </Link>
                 </li>
-              ))}
-            </ul>
-          </div>
-        </aside>
-        <main className="page-body">{children}</main>
+            )}
+        </ul>
+        <div className="nav-footer">
+            <button onClick={handleLogout} title="Sair">
+                <span className="icon">🚪</span> 
+                {navOpen && <span>Sair</span>}
+            </button>
+        </div>
+      </aside>
+
+      {/* 2. ÁREA PRINCIPAL (Header + Sidebar de Ações + Conteúdo) */}
+      <div className="app-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        
+        {/* Cabeçalho Superior (Agora só com User Info, sem links de navegação) */}
+        <header className="top-nav">
+            <div className="nav-left-group">
+                <h2 style={{color: "white", fontSize: "1.2rem", marginLeft: "10px", margin: 0}}>
+                    {location.pathname === "/" ? "INÍCIO" : 
+                     location.pathname === "/admin" ? "ADMINISTRAÇÃO" :
+                     location.pathname.replace("/", "").toUpperCase()}
+                </h2>
+            </div>
+            <div className="nav-user-info">
+                <span className="user-name">Logado como: <strong>ID {userId}</strong></span>
+            </div>
+        </header>
+
+        <div className="main-content" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            
+            {/* 3. MENU DE AÇÕES FIXO (O seu menu antigo, só em Estoque/Contatos) */}
+            {showActionSidebar && (
+                <aside className="sidebar" style={{ width: "250px", borderRight: "1px solid #ddd", background: "#f4f4f4", display: "flex", flexDirection: "column" }}>
+                    <div className="sidebar-content" style={{ padding: "20px" }}>
+                        <h3 style={{ fontSize: "0.9rem", color: "#888", marginBottom: "15px", textTransform: "uppercase" }}>Ações Rápidas</h3>
+                        <ul className="sidebar-list">
+                        {(location.pathname === "/contatos" ? 
+                            [{ label: "Registrar cliente", id: "CLIENTE" }, { label: "Registrar fornecedor", id: "FORNECEDOR" }] :
+                            [{ label: "Criar ordem de serviço", id: "OS" }, { label: "Gerar apontamento", id: "APONTAMENTO" }, { label: "Registrar matéria prima", id: "MP" }, { label: "Registrar produto", id: "PRODUTO" }]
+                        ).map((action) => (
+                            <li key={action.id}>
+                            <button className="sidebar-action" onClick={() => { setFormData({}); setActiveModal(action.id); }}>
+                                {action.label}
+                            </button>
+                            </li>
+                        ))}
+                        </ul>
+                    </div>
+                </aside>
+            )}
+
+            {/* Conteúdo da Página */}
+            <main className="page-body" style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+                {children}
+            </main>
+        </div>
       </div>
 
       <Modal 

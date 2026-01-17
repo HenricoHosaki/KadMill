@@ -481,3 +481,97 @@
   background-color: #e6f7ff; /* Fundo azul claro ao passar o mouse no lápis */
 }
 
+/* --- MENU GLOBAL (RETRÁTIL - ESQUERDA) --- */
+.global-nav {
+  background-color: #050e1f; /* Mais escuro que o topo */
+  color: white;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  border-right: 1px solid #1a2e4a;
+  z-index: 50;
+}
+
+.global-nav.collapsed {
+  width: 60px;
+}
+
+.nav-header {
+  padding: 15px 0;
+  text-align: center;
+  border-bottom: 1px solid #1a2e4a;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #c5a059;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.global-links {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+  flex: 1;
+}
+
+.global-links li a, .nav-footer button {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  color: #a8b2d1;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  font-size: 1rem;
+  white-space: nowrap; /* Impede quebra de texto ao fechar */
+}
+
+.global-links li a:hover {
+  background-color: rgba(255,255,255,0.05);
+  color: #fff;
+  border-right: 3px solid #c5a059;
+}
+
+.global-nav .icon {
+  font-size: 1.2rem;
+  min-width: 30px; /* Garante alinhamento quando fechado */
+  text-align: center;
+}
+
+.global-nav.collapsed .global-links li a {
+  justify-content: center;
+  padding: 15px 0;
+}
+
+.global-nav.collapsed span:not(.icon) {
+  display: none; /* Esconde o texto quando fechado */
+}
+
+/* --- MENU DE AÇÕES (FIXO - CINZA) --- */
+.sidebar {
+  width: 260px;
+  background: #f4f4f4; /* Cinza claro, diferente do menu global */
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; /* Impede que encolha */
+}
+
+/* Ajuste no Container Principal para aceitar Flex Row */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* A Top Nav agora fica dentro do container principal, à direita do menu global */
+.top-nav {
+  padding-left: 20px;
+}
