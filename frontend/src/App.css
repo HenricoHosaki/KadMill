@@ -456,3 +456,28 @@
   cursor: pointer;
   border-radius: 4px;
 }
+
+/* Botões de Ação na Tabela */
+.btn-icon {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 5px;
+  border-radius: 4px;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.1);
+}
+
+.btn-icon.delete:hover {
+  background-color: #ffe6e6; /* Fundo vermelho claro ao passar o mouse no lixo */
+}
+
+.btn-icon.edit:hover {
+  background-color: #e6f7ff; /* Fundo azul claro ao passar o mouse no lápis */
+}
+

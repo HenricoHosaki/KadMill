@@ -107,7 +107,10 @@ model ProdutoMateriaPrima {
 model Produto {
     id Int @id @default(autoincrement())
     nome String
-    descricao String
+    descricao String?
+    tipo String
+    modelo String?
+    unidade String
     quantidade_estoque Int @default(0)
     preco_unitario Decimal @db.Decimal(10,2)
     custo_unitario Decimal @db.Decimal(10,2)
