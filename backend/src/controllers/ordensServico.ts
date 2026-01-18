@@ -48,6 +48,17 @@ export class OrdemServicoController {
     async criarOrdemServico(req: Request, res: Response) {
         try{
             const ordemServico = req.body
+
+            // --- CORREÇÃO IMPORTANTE: Converter Datas ---
+            // O frontend envia texto (ex: "2026-01-17"), o banco precisa de Data real.
+            if (ordemServico.data_abertura) {
+                ordemServico.data_abertura = new Date(ordemServico.data_abertura);
+            }
+            if (ordemServico.data_fechamento) {
+                ordemServico.data_fechamento = new Date(ordemServico.data_fechamento);
+            }
+            // -------------------------------------------
+
             const ordemServicoCriada = await ordemServicoService.adicionarOrdemServico(ordemServico)
 
             if(!ordemServicoCriada){
@@ -59,13 +70,17 @@ export class OrdemServicoController {
             return res.status(201).json({
                 message: "Ordem de serviço registrada com sucesso"
             })
-        }catch(err){
+        }catch(err: any){
+            // Adicionei este log para você ver o erro real no terminal se acontecer de novo
+            console.error("ERRO DETALHADO AO CRIAR OS:", err); 
+
             res.status(500).json({
-                message: "Erro interno do servidor"
+                message: "Erro interno do servidor. Verifique o terminal para detalhes.",
+                error: err.message 
             })
         }
     }
-
+    
     async atualizarOrdemServico(req: Request, res: Response) {
         try{
             const { id } = req.params

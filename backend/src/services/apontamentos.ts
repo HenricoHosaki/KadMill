@@ -7,9 +7,6 @@ export class ApontamentoService{
     async pegarTodosApontamentos(): Promise<Apontamento[]>{
             const todosApontamentos = await prisma.apontamento.findMany();
 
-            if(todosApontamentos.length === 0){
-                throw new AppError("Liste de apontamentos vazia", 404)
-            }
             return todosApontamentos
     };
 

@@ -7,9 +7,6 @@ export class MateriaPrimaService{
     async pegarTodosMateriaPrimas(): Promise<MateriaPrima[]>{
         const todasMateriaPrimas = await prisma.materiaPrima.findMany();
         
-        if(todasMateriaPrimas.length === 0){
-            throw new AppError("Nenhuma matéria prima encontrada", 404)
-        }
         return todasMateriaPrimas
     };
 

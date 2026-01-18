@@ -7,9 +7,6 @@ export class FornecedorService{
     async pegarTodosFornecedores(): Promise<Fornecedor[]>{
         const todosFornecedores = await prisma.fornecedor.findMany();
         
-        if(todosFornecedores.length === 0){
-            throw new AppError("Nenhum fornecedor encontrado", 404)
-        };
         return todosFornecedores
     };
 

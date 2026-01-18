@@ -7,9 +7,6 @@ export class ClienteService{
     async pegarTodosClientes(): Promise<Cliente[]>{
         const todosCliente = await prisma.cliente.findMany();
         
-        if(todosCliente.length === 0){
-            throw new AppError("Nenhum cliente encontrado", 404)
-        };
         return todosCliente
     };
 

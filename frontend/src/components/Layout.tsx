@@ -208,10 +208,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <input name="data_fechamento" type="date" onChange={handleChange} />
               </div>
             </div>
-             <div className="form-group">
-                <label>NÚMERO OS</label>
-                <input name="numero_os" type="text" onChange={handleChange} placeholder="Ex: OS-2024-001" required />
-              </div>
             <div className="form-group">
               <label>DESCRIÇÃO DO SERVIÇO</label>
               <textarea name="descricao_servico" onChange={handleChange} rows={3} required></textarea>
@@ -242,16 +238,26 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <input name="tempo_execucao" type="number" onChange={handleChange} required />
               </div>
             </div>
-             <div className="form-row" style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }}>
-              <div className="form-group">
-                <label style={{ color: "#d9534f" }}>QTD. MATÉRIA USADA</label>
-                <input name="quantidade_utilizada" type="number" onChange={handleChange} placeholder="Insumos" />
-              </div>
-              <div className="form-group">
-                <label style={{ color: "#5cb85c" }}>QTD. PRODUZIDA</label>
-                <input name="quantidade_produzida" type="number" onChange={handleChange} placeholder="Resultado" />
-              </div>
+
+             {/* --- BLOCO DE INSUMOS (ALTERADO AQUI) --- */}
+             <div style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }}>
+                <div className="form-row" style={{ marginBottom: "10px" }}>
+                    <div className="form-group">
+                        <label>ID MATÉRIA PRIMA</label>
+                        <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="ID da MP" />
+                    </div>
+                    <div className="form-group">
+                        <label style={{ color: "#d9534f" }}>QTD. USADA</label>
+                        <input name="quantidade_utilizada" type="number" onChange={handleChange} placeholder="Kg / Unid" />
+                    </div>
+                </div>
+                <div className="form-group">
+                    <label style={{ color: "#5cb85c" }}>QTD. PRODUZIDA (Peças)</label>
+                    <input name="quantidade_produzida" type="number" onChange={handleChange} placeholder="Resultado Final" />
+                </div>
             </div>
+            {/* ----------------------------------------- */}
+
             <div className="form-group">
               <label>OBSERVAÇÃO</label>
               <textarea name="observacao" onChange={handleChange} rows={2}></textarea>
@@ -267,6 +273,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <label>NOME / RAZÃO SOCIAL</label>
               <input name="nome" type="text" onChange={handleChange} required />
             </div>
+            
+            {/* ADICIONE ESTE BLOCO APENAS SE FOR FORNECEDOR */}
+            {activeModal === "FORNECEDOR" && (
+                <div className="form-group">
+                  <label>PESSOA DE CONTATO</label>
+                  <input name="contato" type="text" onChange={handleChange} placeholder="Ex: Sr. Carlos" required />
+                </div>
+            )}
+
             <div className="form-row">
               <div className="form-group">
                 <label>CPF / CNPJ</label>

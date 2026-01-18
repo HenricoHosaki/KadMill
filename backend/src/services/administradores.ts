@@ -8,9 +8,6 @@ export class AdministradorService {
     async pegarTodosUsuarios(): Promise<Usuario[]> {
         const todosUsuarios = await prisma.usuario.findMany();
         
-        if(todosUsuarios.length === 0){
-            throw new AppError('Nenhum usuário encontrado', 404)
-        };
         return todosUsuarios
     };
 

@@ -14,9 +14,6 @@ export class OrdemServicoService{
         }
     });
     
-    if(todasOrdensServicos.length === 0){
-        throw new AppError("Nenhuma ordem de serviço encontrada", 404)
-    };
     return todasOrdensServicos;
 };
 
@@ -31,15 +28,31 @@ export class OrdemServicoService{
         return idOrdemServicoPego
     };
 
-    async adicionarOrdemServico(OrdemServicoData: Prisma.OrdemServicoCreateInput): Promise<OrdemServico>{
-        const ordemServicoCriada = await prisma.ordemServico.create({
-            data: OrdemServicoData
-        });
+    async adicionarOrdemServico(OrdemServicoData: any): Promise<OrdemServico>{
+        
+        // Usamos uma transação para garantir que tudo acontece de uma vez
+        return await prisma.$transaction(async (tx) => {
+            // 1. Cria a OS com um número temporário único (para não dar erro de duplicidade)
+            const tempNumero = `TEMP-${Date.now()}`;
+            
+            const osCriada = await tx.ordemServico.create({
+                data: {
+                    ...OrdemServicoData,
+                    numero_os: tempNumero // Placeholder
+                }
+            });
 
-        if(!ordemServicoCriada){
-            throw new Error("Não foi possível criar a ordem de serviço")
-        };
-        return ordemServicoCriada
+            // 2. Agora que temos o ID (osCriada.id), geramos o formato bonito
+            const ano = new Date().getFullYear();
+            // Exemplo: OS-2026-001 (o padStart completa com zeros à esquerda)
+            const numeroFinal = `OS-${ano}-${osCriada.id.toString().padStart(3, '0')}`;
+
+            // 3. Atualizamos o registro com o número correto
+            return await tx.ordemServico.update({
+                where: { id: osCriada.id },
+                data: { numero_os: numeroFinal }
+            });
+        });
     };
 
     async atualizarOrdemServico(id: number, OrdemServicoData: Prisma.OrdemServicoUpdateInput): Promise<OrdemServico>{

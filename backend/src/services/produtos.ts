@@ -5,10 +5,7 @@ import { AppError } from "../errors/appError";
 export class ProdutoService{
     async pegarTodosProdutos(): Promise<Produto[]>{
         const todosProdutos = await prisma.produto.findMany();
-        
-        if(todosProdutos.length === 0){
-            throw new AppError("Nenhum produto encontrado", 404)
-        };
+      
         return todosProdutos
     };
 

@@ -8,9 +8,6 @@ export class RelatorioService{
     async pegarTodosApontamentos(): Promise<Apontamento[]>{
         const todosApontamentos = await prisma.apontamento.findMany();
         
-        if(todosApontamentos.length === 0){
-            throw new AppError("Nenhum apontamento encontrado", 404)
-        };
         return todosApontamentos
     };
 
