@@ -9,6 +9,6 @@ router.get('/administradores/:id', autenticadorMiddleware, apenasAdmin, (req, re
 router.post('/administradores', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController. criarUsuario(req, res));
 router.put('/administradores/:id', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController.atualizarUsuario(req, res));
 router.delete('/administradores/:id', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController.deletarUsuario(req, res));
-router.get('/administradores/backup/:id', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController.fazerBackup(req, res));
+router.get('/administradores/backup', autenticadorMiddleware, apenasAdmin, (req, res) => administradorController.fazerBackup(req, res));
 
 export default router;
