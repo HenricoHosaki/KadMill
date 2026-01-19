@@ -42,6 +42,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         case "PRODUTO": endpoint = "/produtos"; break;
         case "CLIENTE": endpoint = "/clientes"; break;
         case "FORNECEDOR": endpoint = "/fornecedores"; break;
+        case "FERRAMENTA": endpoint = "/ferramentas"; break;
       }
 
       const payload = { ...formData };
@@ -235,6 +236,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       case "APONTAMENTO":
         return (
           <form className="modal-form">
+            {/* Bloco 1: Quem e Onde */}
             <div className="form-row">
               <div className="form-group">
                 <label>OPERADOR (ID)</label>
@@ -245,6 +247,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <input name="ordemServicoId" type="number" onChange={handleChange} required />
               </div>
             </div>
+
+            {/* Bloco 2: Quando e Quanto Tempo */}
             <div className="form-row">
               <div className="form-group">
                 <label>DATA DO TRABALHO</label>
@@ -256,24 +260,33 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </div>
             </div>
 
-             {/* --- BLOCO DE INSUMOS (ALTERADO AQUI) --- */}
+             {/* Bloco 3: Recursos e Produção (ATUALIZADO) */}
              <div style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }}>
+                
+                {/* Linha de Recursos: MP e Ferramenta */}
                 <div className="form-row" style={{ marginBottom: "10px" }}>
                     <div className="form-group">
                         <label>ID MATÉRIA PRIMA</label>
-                        <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="ID da MP" />
+                        <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="Obrigatório" />
                     </div>
                     <div className="form-group">
-                        <label style={{ color: "#d9534f" }}>QTD. USADA</label>
-                        <input name="quantidade_utilizada" type="number" onChange={handleChange} placeholder="Kg / Unid" />
+                        <label>ID FERRAMENTA</label>
+                        <input name="ferramentaId" type="number" onChange={handleChange} placeholder="Obrigatório" />
                     </div>
                 </div>
-                <div className="form-group">
-                    <label style={{ color: "#5cb85c" }}>QTD. PRODUZIDA (Peças)</label>
-                    <input name="quantidade_produzida" type="number" onChange={handleChange} placeholder="Resultado Final" />
+
+                {/* Linha de Quantidades */}
+                <div className="form-row">
+                    <div className="form-group">
+                        <label style={{ color: "#d9534f" }}>QTD. MP USADA</label>
+                        <input name="quantidade_utilizada" type="number" onChange={handleChange} placeholder="Kg / Unid" />
+                    </div>
+                    <div className="form-group">
+                        <label style={{ color: "#5cb85c" }}>QTD. PRODUZIDA</label>
+                        <input name="quantidade_produzida" type="number" onChange={handleChange} placeholder="Peças Feitas" />
+                    </div>
                 </div>
             </div>
-            {/* ----------------------------------------- */}
 
             <div className="form-group">
               <label>OBSERVAÇÃO</label>
@@ -316,6 +329,39 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
              <div className="form-group">
               <label>ENDEREÇO</label>
               <input name="endereco" type="text" onChange={handleChange} />
+            </div>
+          </form>
+        );
+
+        case "FERRAMENTA":
+        return (
+          <form className="modal-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label>NOME DA FERRAMENTA</label>
+                <input name="nome" type="text" onChange={handleChange} placeholder="Ex: Broca 15mm" required />
+              </div>
+              <div className="form-group">
+                <label>TIPO</label>
+                <input name="tipo" type="text" onChange={handleChange} placeholder="Ex: Corte" required />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>QUANTIDADE DISPONÍVEL</label>
+                <input name="quantidade_disponivel" type="number" onChange={handleChange} placeholder="0" required />
+              </div>
+              <div className="form-group">
+                <label>STATUS</label>
+                <select name="status" onChange={handleChange} defaultValue="ATIVO">
+                  <option value="ATIVO">Ativo</option>
+                  <option value="INATIVO">Inativo</option>
+                </select>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>DESCRIÇÃO</label>
+              <textarea name="descricao" onChange={handleChange} rows={2} required></textarea>
             </div>
           </form>
         );
@@ -402,7 +448,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                         <ul className="sidebar-list">
                         {(location.pathname === "/contatos" ? 
                             [{ label: "Registrar cliente", id: "CLIENTE" }, { label: "Registrar fornecedor", id: "FORNECEDOR" }] :
-                            [{ label: "Criar ordem de serviço", id: "OS" }, { label: "Gerar apontamento", id: "APONTAMENTO" }, { label: "Registrar matéria prima", id: "MP" }, { label: "Registrar produto", id: "PRODUTO" }]
+                            [{ label: "Criar ordem de serviço", id: "OS" }, { label: "Gerar apontamento", id: "APONTAMENTO" }, { label: "Registrar matéria prima", id: "MP" }, { label: "Registrar produto", id: "PRODUTO" }, { label: "Cadastrar Ferramenta", id: "FERRAMENTA" }]
                         ).map((action) => (
                             <li key={action.id}>
                             <button className="sidebar-action" onClick={() => { setFormData({}); setActiveModal(action.id); }}>

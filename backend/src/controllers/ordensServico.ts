@@ -88,25 +88,30 @@ export class OrdemServicoController {
             const idConvertido = Number(id);
 
             if(isNaN(idConvertido)){
-                return res.status(400).json({
-                    message: "Formato de ID inválido"
-                })
+                return res.status(400).json({ message: "Formato de ID inválido" })
             }
-            
+
+            // --- ADICIONE ESTE BLOCO DE CONVERSÃO DE DATA ---
+            if (ordemServico.data_abertura && typeof ordemServico.data_abertura === 'string') {
+                ordemServico.data_abertura = new Date(ordemServico.data_abertura);
+            }
+            if (ordemServico.data_fechamento && typeof ordemServico.data_fechamento === 'string') {
+                ordemServico.data_fechamento = new Date(ordemServico.data_fechamento);
+            }
+            // ------------------------------------------------
+
             const ordemServicoAtualizada = await ordemServicoService.atualizarOrdemServico(idConvertido, ordemServico)
 
             if(!ordemServicoAtualizada){
-                return res.status(404).json({
-                    message: "Não foi possível atualizar a ordem de serviço"
-                })
+                return res.status(404).json({ message: "Não foi possível atualizar a ordem de serviço" })
             }
 
-            return res.status(200).json({
-                message: "Ordem de serviço atualizada"
-            })
-        }catch(err){
+            return res.status(200).json({ message: "Ordem de serviço atualizada" })
+        }catch(err: any){ // Adicione :any para o TypeScript não reclamar
+            console.error("ERRO AO ATUALIZAR OS:", err); // Log para ver o erro real no terminal
             return res.status(500).json({
-                message: "Erro interno do servidor"
+                message: "Erro interno do servidor",
+                error: err.message
             })
         }
     }
