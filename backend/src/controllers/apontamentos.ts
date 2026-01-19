@@ -73,25 +73,26 @@ export class ApontamentoController {
             const idConvertido = Number(id);
 
             if(isNaN(idConvertido)){
-                return res.status(400).json({
-                    message: "Formato de ID inválido"
-                })
+                return res.status(400).json({ message: "Formato de ID inválido" })
             }
             
+            // --- CONVERSÃO DE DATA ---
+            if (apontamento.data_apontamento && typeof apontamento.data_apontamento === 'string') {
+                apontamento.data_apontamento = new Date(apontamento.data_apontamento);
+            }
+
             const apontamentoAtualizado = await apontamentoService.atualizarApontamento(idConvertido, apontamento)
 
             if(!apontamentoAtualizado){
-                return res.status(404).json({
-                    message: "Não foi possível atualizar o apontamento"
-                })
+                return res.status(404).json({ message: "Não foi possível atualizar o apontamento" })
             }
 
-            return res.status(200).json({
-                message: "apontamento atualizado"
-            })
-        }catch(err){
-            return res.status(500).json({
-                message: "Erro interno do servidor"
+            return res.status(200).json({ message: "Apontamento atualizado" })
+        }catch(err: any){
+            console.error("ERRO AO ATUALIZAR APONTAMENTO:", err);
+            return res.status(500).json({ 
+                message: "Erro interno do servidor",
+                error: err.message 
             })
         }
     }

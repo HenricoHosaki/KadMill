@@ -30,7 +30,7 @@ export class FornecedorService{
         return fornecedorCriado
     };
 
-    async atualizarFornecedor(id: number, FornecedorData: Prisma.FornecedorUpdateInput): Promise<Fornecedor>{
+    async atualizarFornecedor(id: number, FornecedorData: any): Promise<Fornecedor>{
         const fornecedorExiste = await prisma.fornecedor.findUnique({
             where: { id }
         });
@@ -39,9 +39,13 @@ export class FornecedorService{
             throw new AppError("Id de fornecedor não existe", 404)
         }
         
+        // --- LIMPEZA DE DADOS ---
+        // Removemos id e relações (materiaPrima)
+        const { id: _id, materiaPrima, data_cadastro, ...dadosLimpos } = FornecedorData;
+
         const atualizaFornecedor = await prisma.fornecedor.update({
             where: {id},
-            data: FornecedorData
+            data: dadosLimpos
         });
         return atualizaFornecedor
     };

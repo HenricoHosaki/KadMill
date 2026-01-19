@@ -68,7 +68,13 @@ const Estoque: React.FC = () => {
       let endpoint = "";
       // Define endpoint e converte tipos se necessário
       const payload = { ...editData };
-      const numericFields = ["quantidade_estoque", "quantidade_disponivel", "preco_unitario", "custo_unitario", "valor_unitario", "valor_total"];
+      const numericFields = ["quantidade_estoque", "quantidade_disponivel", "preco_unitario", "custo_unitario", "valor_unitario", "valor_total","quantidade_utilizada",
+        "quantidade_produzida",
+        "tempo_execucao",
+        "ferramentaId",
+        "materiaPrimaId",
+        "usuarioId",
+        "ordemServicoId"];
       
       numericFields.forEach(field => {
         if(payload[field]) payload[field] = Number(payload[field]);
@@ -338,24 +344,88 @@ const Estoque: React.FC = () => {
         )}
       </Modal>
 
-      {/* 4. Modal Apontamento (Geralmente não se edita muito, mas vamos permitir deletar) */}
+      {/* 4. Modal Apontamento */}
       <Modal isOpen={!!apontamentoSelecionado} onClose={() => setApontamentoSelecionado(null)} title={`Apontamento #AP-${apontamentoSelecionado?.id}`}>
         {apontamentoSelecionado && (
-            <div className="os-details-view">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-                    <p><strong>OS:</strong> {apontamentoSelecionado.ordemServicoId}</p>
-                    <p><strong>Operador:</strong> {apontamentoSelecionado.usuarioId}</p>
-                    <p><strong>Produzido:</strong> {apontamentoSelecionado.quantidade_produzida}</p>
-                    <p><strong>Tempo:</strong> {apontamentoSelecionado.tempo_execucao} min</p>
-                </div>
-                <div style={{marginTop: "15px"}}>
-                    <strong>Observação:</strong> {apontamentoSelecionado.observacao}
-                </div>
+            <div className="os-details-view modal-form">
+                {!isEditing ? (
+                    // --- MODO VISUALIZAÇÃO ---
+                    <>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+                            <p><strong>OS ID:</strong> {apontamentoSelecionado.ordemServicoId}</p>
+                            <p><strong>Operador ID:</strong> {apontamentoSelecionado.usuarioId}</p>
+                            <p><strong>Data:</strong> {new Date(apontamentoSelecionado.data_apontamento).toLocaleDateString()}</p>
+                            <p><strong>Tempo:</strong> {apontamentoSelecionado.tempo_execucao} min</p>
+                        </div>
+
+                        <div style={{ marginTop: "15px", padding: "10px", background: "#f8f9fa", borderRadius: "4px", border: "1px solid #ddd" }}>
+                            <h4 style={{ fontSize: "0.9rem", color: "#333", marginBottom: "10px", borderBottom: "1px solid #ddd", paddingBottom: "5px" }}>Recursos e Produção</h4>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                                <p><strong>Ferramenta (ID):</strong> {apontamentoSelecionado.ferramentaId || "-"}</p>
+                                <p><strong>Matéria Prima (ID):</strong> {apontamentoSelecionado.materiaPrimaId || "-"}</p>
+                                <p><strong>Qtd. MP Usada:</strong> {apontamentoSelecionado.quantidade_utilizada}</p>
+                                <p><strong>Qtd. Produzida:</strong> {apontamentoSelecionado.quantidade_produzida}</p>
+                            </div>
+                        </div>
+
+                        <div style={{marginTop: "15px"}}>
+                            <strong>Observação:</strong> <br/>
+                            <span style={{color: "#555"}}>{apontamentoSelecionado.observacao || "Sem observações."}</span>
+                        </div>
+                    </>
+                ) : (
+                    // --- MODO EDIÇÃO ---
+                    <>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Data</label>
+                                <input 
+                                    type="date" 
+                                    name="data_apontamento" 
+                                    value={editData.data_apontamento ? new Date(editData.data_apontamento).toISOString().split('T')[0] : ""} 
+                                    onChange={handleEditChange} 
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Tempo (min)</label>
+                                <input type="number" name="tempo_execucao" value={editData.tempo_execucao} onChange={handleEditChange} />
+                            </div>
+                        </div>
+
+                        <div style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd", margin: "10px 0" }}>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>ID Ferramenta</label>
+                                    <input type="number" name="ferramentaId" value={editData.ferramentaId || ""} onChange={handleEditChange} placeholder="ID" />
+                                </div>
+                                <div className="form-group">
+                                    <label>ID Matéria Prima</label>
+                                    <input type="number" name="materiaPrimaId" value={editData.materiaPrimaId || ""} onChange={handleEditChange} placeholder="ID" />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Qtd. MP Usada</label>
+                                    <input type="number" name="quantidade_utilizada" value={editData.quantidade_utilizada} onChange={handleEditChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Qtd. Produzida</label>
+                                    <input type="number" name="quantidade_produzida" value={editData.quantidade_produzida} onChange={handleEditChange} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Observação</label>
+                            <textarea name="observacao" value={editData.observacao || ""} onChange={handleEditChange} rows={2} />
+                        </div>
+                    </>
+                )}
                 <ModalActions id={apontamentoSelecionado.id} />
             </div>
         )}
       </Modal>
-
+      
       {/* 5. Modal OS */}
       <Modal isOpen={!!osSelecionada} onClose={() => setOsSelecionada(null)} title={`OS #${osSelecionada?.id}`}>
         {osSelecionada && (

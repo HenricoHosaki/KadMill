@@ -55,19 +55,30 @@ export class OrdemServicoService{
         });
     };
 
-    async atualizarOrdemServico(id: number, OrdemServicoData: Prisma.OrdemServicoUpdateInput): Promise<OrdemServico>{
-        const OrdemServicoExiste = await prisma.ordemServico.findUnique({
-            where: { id }
-        });
+    async atualizarOrdemServico(id: number, OrdemServicoData: any): Promise<OrdemServico>{
+        
+        const existeOrdemServico = await prisma.ordemServico.findUnique({
+             where: { id }
+        })
 
-        if(!OrdemServicoExiste){
-            throw new AppError("Id de ordem de serviço não encontrada", 404)
+        if(!existeOrdemServico){
+             throw new AppError("Id de ordem de serviço não encontrada", 404)
         };
 
+        const { 
+            id: _id,
+            cliente,
+            apontamentosOrdemServico,
+            ...dadosLimpos
+        } = OrdemServicoData;
+
         const atualizaOrdemServico = await prisma.ordemServico.update({
-            where: {id},
-            data: OrdemServicoData
-        });
+            where: {
+                id: id
+            },
+            data: dadosLimpos
+        })
+
         return atualizaOrdemServico
     };
 

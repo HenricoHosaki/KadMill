@@ -53,21 +53,30 @@ export class ApontamentoService{
     return apontamentoCriado;
 };
 
-    async atualizarApontamento(id: number, apontamentoData: Prisma.ApontamentoUpdateInput): Promise<Apontamento> {
+    async atualizarApontamento(id: number, apontamentoData: any): Promise<Apontamento>{
         
-        const apontamentoExiste = await prisma.apontamento.findUnique({
-            where: { id }
+        const existeApontamento = await prisma.apontamento.findUnique({
+             where: { id }
         })
 
-        if(!apontamentoExiste){
-            throw new AppError("Id de apontamento não encontrado", 404)
-        }
-        
-        const atualizaApontamento = await prisma.apontamento.update({
-                where: { id },
-                data: apontamentoData
-        });
-        return atualizaApontamento
+        if(!existeApontamento){
+             throw new AppError("Apontamento não encontrado", 404)
+        };
+        const { 
+            id: _id, 
+            usuario, 
+            ordemServico, 
+            ferramenta, 
+            materiaPrima, 
+            ...dadosLimpos 
+        } = apontamentoData;
+
+        const apontamentoAtualizado = await prisma.apontamento.update({
+            where: { id },
+            data: dadosLimpos
+        })
+
+        return apontamentoAtualizado
     };
         
     async deletarApontamento(id: number): Promise<Apontamento> {
