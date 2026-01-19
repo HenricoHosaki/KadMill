@@ -46,7 +46,15 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       const payload = { ...formData };
 
-      // Lógica específica para PRODUTO
+      // 1. CORREÇÃO MATÉRIA PRIMA (Campos Obrigatórios)
+      if (activeModal === "MP") {
+          // Define padrão se o usuário não mexeu no select
+          if (!payload.unidade_medida) payload.unidade_medida = "KG";
+          // Define um traço se a descrição estiver vazia (obrigatório no banco)
+          if (!payload.descricao) payload.descricao = "-";
+      }
+
+      // 2. CORREÇÃO PRODUTO
       if (activeModal === "PRODUTO") {
         if (payload.calculo_custo) {
           payload.custo_unitario = Number(payload.calculo_custo);
@@ -61,11 +69,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         "usuarioId", "ordemServicoId", "materiaPrimaId", "ferramentaId",
         "quantidade_utilizada", "quantidade_produzida", "tempo_execucao", 
         "clienteId", "valor_total", "quantidade_disponivel", "preco_custo",
-        "quantidade_estoque", "preco_unitario", "fornecedorId", "custo_unitario"
+        "quantidade_estoque", "preco_unitario", "fornecedorId", "custo_unitario",
+        "numero_os"
       ];
       
+      // 3. CORREÇÃO CRÍTICA PARA NÚMEROS
       numericFields.forEach(field => {
-        if (payload[field] !== undefined && payload[field] !== "") {
+        // Se o campo existe mas está vazio (string vazia), removemos do payload
+        // para não enviar "" onde o backend espera Int
+        if (payload[field] === "") {
+            delete payload[field];
+        } 
+        // Se tem valor, converte para número
+        else if (payload[field] !== undefined) {
           payload[field] = Number(payload[field]);
         }
       });
@@ -77,7 +93,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       window.location.reload(); 
     } catch (error: any) {
       console.error("Erro ao salvar:", error);
-      alert(error.response?.data?.message || "Erro ao salvar o registro.");
+      // O alerta agora mostrará a mensagem de erro do backend se houver
+      alert(error.response?.data?.message || error.response?.data?.error || "Erro ao salvar o registro.");
     } finally {
       setLoading(false);
     }

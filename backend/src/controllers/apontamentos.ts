@@ -47,21 +47,22 @@ export class ApontamentoController {
     async criarApontamento(req: Request, res: Response) {
         try{
             const apontamento = req.body
+
+            // --- CORREÇÃO DE DATA ---
+            if(apontamento.data_apontamento && typeof apontamento.data_apontamento === 'string'){
+                apontamento.data_apontamento = new Date(apontamento.data_apontamento);
+            }
+            // ------------------------
+
             const apontamentoCriado = await apontamentoService.criarApontamento(apontamento)
 
             if(!apontamentoCriado){
-                return res.status(400).json({
-                    message: "Informações inválidas"
-                })
+                return res.status(400).json({ message: "Informações inválidas" })
             }
-
-            return res.status(201).json({
-                message: "apontamento registrado com sucesso"
-            })
-        }catch(err){
-            res.status(500).json({
-                message: "Erro interno do servidor"
-            })
+            return res.status(201).json({ message: "Apontamento registrado com sucesso" })
+        }catch(err: any){
+            console.error("Erro Apontamento:", err);
+            res.status(500).json({ message: "Erro interno do servidor", error: err.message })
         }
     }
 

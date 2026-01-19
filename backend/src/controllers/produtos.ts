@@ -44,24 +44,25 @@ export class ProdutoController {
         }
     }
 
-    async criarProduto(req: Request, res: Response) {
+   async criarProduto(req: Request, res: Response) {
         try{
             const produto = req.body
+
+            // --- CORREÇÃO DE DATA ---
+            if(produto.data_registro && typeof produto.data_registro === 'string'){
+                produto.data_registro = new Date(produto.data_registro);
+            }
+            // ------------------------
+
             const produtoCriado = await produtoService.adicionarProduto(produto)
 
             if(!produtoCriado){
-                return res.status(400).json({
-                    message: "Informações inválidas"
-                })
+                return res.status(400).json({ message: "Informações inválidas" })
             }
-
-            return res.status(201).json({
-                message: "Produto registrado com sucesso"
-            })
-        }catch(err){
-            res.status(500).json({
-                message: "Erro interno do servidor"
-            })
+            return res.status(201).json({ message: "Produto registrado com sucesso" })
+        }catch(err: any){ // Adicione :any
+            console.error("Erro Produto:", err); // Log para debug
+            res.status(500).json({ message: "Erro interno do servidor", error: err.message })
         }
     }
 
