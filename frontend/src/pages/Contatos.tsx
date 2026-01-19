@@ -9,13 +9,25 @@ const Contatos: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const userIsAdmin = isAdmin();
 
-  // Estados dos Modais
+  // Filtros
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [filtros, setFiltros] = useState({
+    termo: "", // Nome, CPF/CNPJ
+    id: ""
+  });
+
+  // Modais
   const [clienteSelecionado, setClienteSelecionado] = useState<any | null>(null);
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState<any | null>(null);
 
-  // Estados de Edição
+  // Edição
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>({});
+
+  // Resetar filtros ao trocar de aba
+  useEffect(() => {
+    setFiltros({ termo: "", id: "" });
+  }, [abaAtiva]);
 
   const carregarDados = async () => {
     setLoading(true);
@@ -35,6 +47,25 @@ const Contatos: React.FC = () => {
     carregarDados();
   }, [abaAtiva]);
 
+  // --- LÓGICA DE FILTRAGEM ---
+  const listaFiltrada = lista.filter((item) => {
+    // Filtro ID
+    if (filtros.id && !String(item.id).includes(filtros.id)) return false;
+
+    // Filtro Texto (Nome, CNPJ, Email)
+    if (filtros.termo) {
+        const termo = filtros.termo.toLowerCase();
+        const nome = item.nome.toLowerCase();
+        const doc = item.cpf_cnpj ? item.cpf_cnpj.toLowerCase() : "";
+        const email = item.email ? item.email.toLowerCase() : "";
+        
+        if (!nome.includes(termo) && !doc.includes(termo) && !email.includes(termo)) {
+            return false;
+        }
+    }
+    return true;
+  });
+
   // --- Lógica de Abertura de Modal ---
   const abrirModal = (item: any, type: "CLIENTE" | "FORNECEDOR") => {
       setEditData(item);
@@ -48,7 +79,6 @@ const Contatos: React.FC = () => {
       setEditData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  // --- Salvar Edição ---
   const handleSaveEdit = async () => {
       try {
           const endpoint = abaAtiva === "CLIENTES" 
@@ -59,9 +89,8 @@ const Contatos: React.FC = () => {
           
           alert("Registro atualizado com sucesso!");
           setIsEditing(false);
-          carregarDados(); // Atualiza a tabela
+          carregarDados(); 
 
-          // Atualiza o modal visualmente
           if (abaAtiva === "CLIENTES") setClienteSelecionado(editData);
           else setFornecedorSelecionado(editData);
 
@@ -71,7 +100,6 @@ const Contatos: React.FC = () => {
       }
   };
 
-  // --- Excluir Registro ---
   const handleDelete = async (id: number) => {
       if (!window.confirm("Tem certeza que deseja EXCLUIR este registro?")) return;
 
@@ -92,17 +120,11 @@ const Contatos: React.FC = () => {
       }
   };
 
-  // Componente de botões (igual ao Estoque)
   const ModalActions = ({ id }: { id: number }) => (
       <div style={{ marginTop: "20px", borderTop: "1px solid #eee", paddingTop: "15px", display: "flex", justifyContent: "space-between" }}>
           <div>
               {userIsAdmin && (
-                  <button 
-                      onClick={() => handleDelete(id)}
-                      style={{ background: "#ff4d4f", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
-                  >
-                      🗑️ Excluir
-                  </button>
+                  <button onClick={() => handleDelete(id)} style={{ background: "#ff4d4f", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}>🗑️ Excluir</button>
               )}
           </div>
           <div>
@@ -122,21 +144,51 @@ const Contatos: React.FC = () => {
     <div className="contatos-container">
       <div className="page-header">
         <div className="tabs">
-          <button 
-            className={abaAtiva === "CLIENTES" ? "selected" : ""} 
-            onClick={() => setAbaAtiva("CLIENTES")}
-          >
-            Clientes
-          </button>
-          <button 
-            className={abaAtiva === "FORNECEDORES" ? "selected" : ""} 
-            onClick={() => setAbaAtiva("FORNECEDORES")}
-          >
-            Fornecedores
-          </button>
+          <button className={abaAtiva === "CLIENTES" ? "selected" : ""} onClick={() => setAbaAtiva("CLIENTES")}>Clientes</button>
+          <button className={abaAtiva === "FORNECEDORES" ? "selected" : ""} onClick={() => setAbaAtiva("FORNECEDORES")}>Fornecedores</button>
         </div>
-        <div className="filter-icon">🔍 Filtro</div>
+        <div 
+            className="filter-icon" 
+            onClick={() => setMostrarFiltros(!mostrarFiltros)}
+            style={{ background: mostrarFiltros ? "#e0e0e0" : "white" }}
+        >
+            🔍 Filtro {mostrarFiltros ? "▲" : "▼"}
+        </div>
       </div>
+
+      {/* --- BARRA DE FILTROS --- */}
+      {mostrarFiltros && (
+        <div style={{ background: "#f1f1f1", padding: "15px", marginBottom: "20px", borderRadius: "4px", border: "1px solid #ddd", display: "flex", gap: "10px", alignItems: "flex-end" }}>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>ID</label>
+                <input 
+                    type="text" 
+                    placeholder="Ex: 5" 
+                    value={filtros.id}
+                    onChange={(e) => setFiltros({ ...filtros, id: e.target.value })}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "80px" }}
+                />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>
+                    NOME / CNPJ / EMAIL
+                </label>
+                <input 
+                    type="text" 
+                    placeholder="Pesquisar..." 
+                    value={filtros.termo}
+                    onChange={(e) => setFiltros({ ...filtros, termo: e.target.value })}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
+                />
+            </div>
+            <button 
+                onClick={() => setFiltros({ termo: "", id: "" })}
+                style={{ padding: "8px 15px", background: "#eee", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer", height: "35px" }}
+            >
+                Limpar
+            </button>
+        </div>
+      )}
 
       <div className="table-container">
         <table className="kadmill-table">
@@ -152,8 +204,8 @@ const Contatos: React.FC = () => {
           <tbody>
             {loading ? (
               <tr><td colSpan={5} style={{ textAlign: 'center' }}>A carregar contactos...</td></tr>
-            ) : lista.length > 0 ? (
-              lista.map((item) => (
+            ) : listaFiltrada.length > 0 ? (
+              listaFiltrada.map((item) => (
                 <tr 
                     key={item.id} 
                     onClick={() => abrirModal(item, abaAtiva === "CLIENTES" ? "CLIENTE" : "FORNECEDOR")}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
 import Modal from "../components/Modal";
-import { isAdmin } from "../utils/authUtils"; // Importante para verificar permissão
+import { isAdmin } from "../utils/authUtils";
 
 type AbaTipo = "PRODUTO" | "MATERIA_PRIMA" | "ORDEM_SERVICO" | "APONTAMENTO" | "FERRAMENTA";
 
@@ -9,9 +9,18 @@ const Estoque: React.FC = () => {
   const [abaAtiva, setAbaAtiva] = useState<AbaTipo>("MATERIA_PRIMA");
   const [dados, setDados] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const userIsAdmin = isAdmin(); // Verifica se é admin
+  const userIsAdmin = isAdmin();
 
-  // Estados dos Modais
+  // --- ESTADOS DE FILTRO ---
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [filtros, setFiltros] = useState({
+    termo: "",      // Para Nome, Descrição, Modelo
+    id: "",         // Para IDs específicos
+    status: "TODOS",// Para Status (OS, Ferramenta)
+    data: ""        // Para datas específicas
+  });
+
+  // Estados dos Modais (Visualização/Edição)
   const [osSelecionada, setOsSelecionada] = useState<any | null>(null);
   const [apontamentoSelecionado, setApontamentoSelecionado] = useState<any | null>(null);
   const [produtoSelecionado, setProdutoSelecionado] = useState<any | null>(null);
@@ -22,7 +31,11 @@ const Estoque: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>({});
 
-  // Função para recarregar dados
+  // Resetar filtros ao trocar de aba
+  useEffect(() => {
+    setFiltros({ termo: "", id: "", status: "TODOS", data: "" });
+  }, [abaAtiva]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -49,13 +62,55 @@ const Estoque: React.FC = () => {
     fetchData();
   }, [abaAtiva]);
 
-  // --- LÓGICA DE EDIÇÃO ---
+  // --- LÓGICA DE FILTRAGEM ---
+  const dadosFiltrados = dados.filter((item) => {
+    // 1. Filtro por ID (Genérico para todos)
+    if (filtros.id && !String(item.id).includes(filtros.id)) return false;
 
-  // Ao abrir um modal, resetamos o modo de edição
+    // 2. Filtros Específicos por Aba
+    switch (abaAtiva) {
+      case "PRODUTO":
+        if (filtros.termo && !item.nome.toLowerCase().includes(filtros.termo.toLowerCase()) && 
+            !item.modelo?.toLowerCase().includes(filtros.termo.toLowerCase())) return false;
+        break;
+
+      case "MATERIA_PRIMA":
+        if (filtros.termo && !item.nome.toLowerCase().includes(filtros.termo.toLowerCase())) return false;
+        break;
+
+      case "FERRAMENTA":
+        if (filtros.termo && !item.nome.toLowerCase().includes(filtros.termo.toLowerCase()) &&
+            !item.tipo.toLowerCase().includes(filtros.termo.toLowerCase())) return false;
+        if (filtros.status !== "TODOS" && item.status !== filtros.status) return false;
+        break;
+
+      case "ORDEM_SERVICO":
+        // Filtro por Nome do Cliente ou CNPJ (acessando o objeto cliente aninhado)
+        if (filtros.termo) {
+            const termo = filtros.termo.toLowerCase();
+            const clienteNome = item.cliente?.nome?.toLowerCase() || "";
+            const clienteDoc = item.cliente?.cpf_cnpj || "";
+            if (!clienteNome.includes(termo) && !clienteDoc.includes(termo)) return false;
+        }
+        if (filtros.status !== "TODOS" && item.status !== filtros.status) return false;
+        if (filtros.data && !item.data_abertura.startsWith(filtros.data)) return false;
+        break;
+
+      case "APONTAMENTO":
+        // Filtro "Termo" aqui serve para buscar pelo ID da OS vinculada
+        if (filtros.termo && !String(item.ordemServicoId).includes(filtros.termo)) return false;
+        if (filtros.data && !item.data_apontamento.startsWith(filtros.data)) return false;
+        break;
+    }
+
+    return true;
+  });
+
+  // --- LÓGICA DE EDIÇÃO E EXCLUSÃO (MANTIDA) ---
   const abrirModal = (item: any, setModal: React.Dispatch<any>) => {
     setModal(item);
-    setEditData(item); // Copia dados para o formulário de edição
-    setIsEditing(false); // Garante que começa no modo visualização
+    setEditData(item); 
+    setIsEditing(false); 
   };
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -66,15 +121,14 @@ const Estoque: React.FC = () => {
   const handleSaveEdit = async () => {
     try {
       let endpoint = "";
-      // Define endpoint e converte tipos se necessário
       const payload = { ...editData };
-      const numericFields = ["quantidade_estoque", "quantidade_disponivel", "preco_unitario", "custo_unitario", "valor_unitario", "valor_total","quantidade_utilizada",
-        "quantidade_produzida",
-        "tempo_execucao",
-        "ferramentaId",
-        "materiaPrimaId",
-        "usuarioId",
-        "ordemServicoId"];
+      
+      const numericFields = [
+        "quantidade_estoque", "quantidade_disponivel", "preco_unitario", 
+        "custo_unitario", "valor_unitario", "valor_total",
+        "quantidade_utilizada", "quantidade_produzida", "tempo_execucao",
+        "ferramentaId", "materiaPrimaId", "usuarioId", "ordemServicoId"
+      ];
       
       numericFields.forEach(field => {
         if(payload[field]) payload[field] = Number(payload[field]);
@@ -91,9 +145,8 @@ const Estoque: React.FC = () => {
       await api.put(endpoint, payload);
       alert("Atualizado com sucesso!");
       setIsEditing(false);
-      fetchData(); // Atualiza a tabela no fundo
+      fetchData(); 
       
-      // Atualiza o modal aberto com os novos dados
       if(produtoSelecionado) setProdutoSelecionado(payload);
       if(mpSelecionada) setMpSelecionada(payload);
       if(ferramentaSelecionada) setFerramentaSelecionada(payload);
@@ -106,10 +159,8 @@ const Estoque: React.FC = () => {
     }
   };
 
-  // --- LÓGICA DE EXCLUSÃO (ADMIN) ---
   const handleDelete = async (id: number) => {
-    if(!window.confirm("Tem certeza que deseja EXCLUIR este item? Esta ação não pode ser desfeita.")) return;
-
+    if(!window.confirm("Tem certeza que deseja EXCLUIR este item?")) return;
     try {
       let endpoint = "";
       switch (abaAtiva) {
@@ -119,36 +170,20 @@ const Estoque: React.FC = () => {
         case "ORDEM_SERVICO": endpoint = `/ordensServicos/${id}`; break;
         case "APONTAMENTO": endpoint = `/apontamentos/${id}`; break;
       }
-
       await api.delete(endpoint);
       alert("Item excluído.");
-      
-      // Fecha todos os modais
-      setProdutoSelecionado(null);
-      setMpSelecionada(null);
-      setFerramentaSelecionada(null);
-      setOsSelecionada(null);
-      setApontamentoSelecionado(null);
-      
+      setProdutoSelecionado(null); setMpSelecionada(null); setFerramentaSelecionada(null); setOsSelecionada(null); setApontamentoSelecionado(null);
       fetchData();
     } catch (error) {
-      alert("Erro ao excluir. Verifique se este item não está sendo usado em outros registros.");
+      alert("Erro ao excluir.");
     }
   };
 
-  // --- RENDERIZAÇÃO ---
-
-  // Componente auxiliar para os botões de ação do modal
   const ModalActions = ({ id }: { id: number }) => (
     <div style={{ marginTop: "20px", borderTop: "1px solid #eee", paddingTop: "15px", display: "flex", justifyContent: "space-between" }}>
         <div>
             {userIsAdmin && (
-                <button 
-                    onClick={() => handleDelete(id)}
-                    style={{ background: "#ff4d4f", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer", marginRight: "10px" }}
-                >
-                    🗑️ Excluir
-                </button>
+                <button onClick={() => handleDelete(id)} style={{ background: "#ff4d4f", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer", marginRight: "10px" }}>🗑️ Excluir</button>
             )}
         </div>
         <div>
@@ -164,7 +199,102 @@ const Estoque: React.FC = () => {
     </div>
   );
 
-  // ... (renderTableHead e renderTableRow mantêm-se iguais ao anterior, apenas chamando abrirModal no onClick) ...
+  // --- RENDERIZAÇÃO DA BARRA DE FILTROS ---
+  const renderFiltros = () => {
+    if (!mostrarFiltros) return null;
+
+    return (
+      <div style={{ background: "#f1f1f1", padding: "15px", marginBottom: "20px", borderRadius: "4px", border: "1px solid #ddd", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-end" }}>
+        
+        {/* Filtro ID (Comum a todos) */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+            <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>ID / CÓDIGO</label>
+            <input 
+                type="text" 
+                placeholder="Ex: 5" 
+                value={filtros.id}
+                onChange={(e) => setFiltros({ ...filtros, id: e.target.value })}
+                style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "80px" }}
+            />
+        </div>
+
+        {/* Filtro Texto (Nome, Modelo, Cliente) - Variável */}
+        {(abaAtiva !== "APONTAMENTO") && (
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>
+                    {abaAtiva === "ORDEM_SERVICO" ? "CLIENTE / CNPJ" : "NOME / MODELO"}
+                </label>
+                <input 
+                    type="text" 
+                    placeholder="Pesquisar..." 
+                    value={filtros.termo}
+                    onChange={(e) => setFiltros({ ...filtros, termo: e.target.value })}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
+                />
+            </div>
+        )}
+
+        {/* Filtro Específico Apontamento */}
+        {abaAtiva === "APONTAMENTO" && (
+             <div style={{ display: "flex", flexDirection: "column" }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>ID DA OS</label>
+                <input 
+                    type="text" 
+                    placeholder="OS ID" 
+                    value={filtros.termo}
+                    onChange={(e) => setFiltros({ ...filtros, termo: e.target.value })}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                />
+            </div>
+        )}
+
+        {/* Filtro Data (OS e Apontamento) */}
+        {(abaAtiva === "ORDEM_SERVICO" || abaAtiva === "APONTAMENTO") && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>DATA</label>
+                <input 
+                    type="date" 
+                    value={filtros.data}
+                    onChange={(e) => setFiltros({ ...filtros, data: e.target.value })}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                />
+            </div>
+        )}
+
+        {/* Filtro Status (OS e Ferramenta) */}
+        {(abaAtiva === "ORDEM_SERVICO" || abaAtiva === "FERRAMENTA") && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>STATUS</label>
+                <select 
+                    value={filtros.status}
+                    onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+                >
+                    <option value="TODOS">Todos</option>
+                    <option value="ATIVO">Ativo</option>
+                    <option value="INATIVO">Inativo</option>
+                    {abaAtiva === "ORDEM_SERVICO" && (
+                        <>
+                            <option value="ABERTA">Aberta</option>
+                            <option value="EM_ANDAMENTO">Em Andamento</option>
+                            <option value="CONCLUIDA">Concluída</option>
+                            <option value="CANCELADA">Cancelada</option>
+                        </>
+                    )}
+                </select>
+            </div>
+        )}
+
+        <button 
+            onClick={() => setFiltros({ termo: "", id: "", status: "TODOS", data: "" })}
+            style={{ padding: "8px 15px", background: "#eee", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer", height: "35px" }}
+        >
+            Limpar
+        </button>
+      </div>
+    );
+  };
+
   const renderTableHead = () => {
     switch (abaAtiva) {
       case "MATERIA_PRIMA": return (<tr><th>Código</th><th>Nome</th><th>Quantidade</th><th>Fornecedor</th><th>Última entrada</th></tr>);
@@ -176,7 +306,6 @@ const Estoque: React.FC = () => {
   };
 
   const renderTableRow = (item: any) => {
-    // Helper para formatar linha clicável
     const rowProps = (setter: any) => ({
         key: item.id,
         onClick: () => abrirModal(item, setter),
@@ -228,28 +357,35 @@ const Estoque: React.FC = () => {
           <button onClick={() => setAbaAtiva("ORDEM_SERVICO")} className={abaAtiva === "ORDEM_SERVICO" ? "selected" : ""}>Ordem de Serviço</button>
           <button onClick={() => setAbaAtiva("APONTAMENTO")} className={abaAtiva === "APONTAMENTO" ? "selected" : ""}>Apontamento</button>
         </div>
-        <div className="filter-icon">🔍 Filtro</div>
+        <div 
+            className="filter-icon" 
+            onClick={() => setMostrarFiltros(!mostrarFiltros)}
+            style={{ background: mostrarFiltros ? "#e0e0e0" : "white" }}
+        >
+            🔍 Filtro {mostrarFiltros ? "▲" : "▼"}
+        </div>
       </div>
+
+      {/* RENDERIZA OS FILTROS AQUI */}
+      {renderFiltros()}
 
       <div className="table-container">
         <table className="kadmill-table">
           <thead>{renderTableHead()}</thead>
           <tbody>
             {loading ? <tr><td colSpan={5} style={{textAlign: "center"}}>Carregando...</td></tr> : 
-             dados.length > 0 ? dados.map(item => renderTableRow(item)) : 
-             <tr><td colSpan={5} style={{textAlign: "center", padding: "20px"}}>Nenhum dado encontrado.</td></tr>}
+             dadosFiltrados.length > 0 ? dadosFiltrados.map(item => renderTableRow(item)) : 
+             <tr><td colSpan={5} style={{textAlign: "center", padding: "20px"}}>Nenhum dado encontrado para os filtros aplicados.</td></tr>}
           </tbody>
         </table>
       </div>
 
       {/* --- MODAIS COM EDIÇÃO --- */}
-
       {/* 1. Modal Produto */}
       <Modal isOpen={!!produtoSelecionado} onClose={() => setProdutoSelecionado(null)} title={`Detalhes do Produto #PI-${produtoSelecionado?.id}`}>
         {produtoSelecionado && (
           <div className="os-details-view modal-form">
             {!isEditing ? (
-                // MODO VISUALIZAÇÃO
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
                     <p><strong>Nome:</strong> {produtoSelecionado.nome}</p>
                     <p><strong>Tipo:</strong> {produtoSelecionado.tipo}</p>
@@ -261,7 +397,6 @@ const Estoque: React.FC = () => {
                     <div style={{gridColumn: "1 / -1"}}><strong>Descrição:</strong> <br/>{produtoSelecionado.descricao}</div>
                 </div>
             ) : (
-                // MODO EDIÇÃO
                 <>
                     <div className="form-group"><label>Nome</label><input name="nome" value={editData.nome} onChange={handleEditChange} /></div>
                     <div className="form-row">
@@ -425,7 +560,7 @@ const Estoque: React.FC = () => {
             </div>
         )}
       </Modal>
-      
+
       {/* 5. Modal OS */}
       <Modal isOpen={!!osSelecionada} onClose={() => setOsSelecionada(null)} title={`OS #${osSelecionada?.id}`}>
         {osSelecionada && (
@@ -435,11 +570,8 @@ const Estoque: React.FC = () => {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
                         <p><strong>Cliente:</strong> {osSelecionada.cliente?.nome || osSelecionada.clienteId}</p>
                         <p><strong>CNPJ/CPF:</strong> {osSelecionada.cliente?.cpf_cnpj || "-"}</p>
-                        
-                        {/* Campos de Data Recuperados */}
                         <p><strong>Data de Emissão:</strong> {new Date(osSelecionada.data_abertura).toLocaleDateString()}</p>
                         <p><strong>Prazo de Entrega:</strong> {osSelecionada.data_fechamento ? new Date(osSelecionada.data_fechamento).toLocaleDateString() : "Em aberto"}</p>
-                        
                         <p><strong>Status:</strong> <span className={`status-badge ${osSelecionada.status}`}>{osSelecionada.status}</span></p>
                         <p><strong>Valor Total:</strong> R$ {Number(osSelecionada.valor_total || 0).toFixed(2)}</p>
                         
@@ -469,14 +601,12 @@ const Estoque: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Novos Campos de Edição de Data */}
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Data de Emissão</label>
                                 <input 
                                     type="date" 
                                     name="data_abertura" 
-                                    // Converte ISO (2026-01-01T00:00...) para YYYY-MM-DD para o input funcionar
                                     value={editData.data_abertura ? new Date(editData.data_abertura).toISOString().split('T')[0] : ""} 
                                     onChange={handleEditChange} 
                                 />
