@@ -10,6 +10,7 @@ import materiasPrimasRoutes from './routes/materiasPrimas';
 import apontamentosRoutes from './routes/apontamentos';
 import administradoresRoutes from './routes/administradores';
 import loginRoutes from './routes/authLogin'
+import ferramentasRoutes from './routes/ferramentas';
 import relatoriosRoutes from './routes/relatorios';
 import { criarAdmin } from './bootstrap/defaultAdmin'
 import { errorHandler } from './middlewares/globalLogs';
@@ -27,6 +28,7 @@ async function start() {
   app.use(apontamentosRoutes);
   app.use(administradoresRoutes);
   app.use(loginRoutes)
+  app.use(ferramentasRoutes);
   app.use(relatoriosRoutes);
   app.use(errorHandler)
 
