@@ -5,21 +5,35 @@ import { AppError } from "../errors/appError";
 export class OrdemServicoService{
 
     async pegarTodasOrdensServicos(): Promise<OrdemServico[]> {
-    const todasOrdensServicos = await prisma.ordemServico.findMany({
-        include: {
-            cliente: true,
-        },
-        orderBy: {
-            id: 'desc'
-        }
-    });
-    
-    return todasOrdensServicos;
-};
+        const todasOrdensServicos = await prisma.ordemServico.findMany({
+            include: {
+                cliente: true,
+                // --- INCLUIR APONTAMENTOS E OPERADORES ---
+                apontamentosOrdemServico: {
+                    include: { usuario: true },
+                    orderBy: { id: 'asc' } // Ordem cronológica
+                }
+                // -----------------------------------------
+            },
+            orderBy: {
+                id: 'desc'
+            }
+        });
+        
+        return todasOrdensServicos;
+    };
 
     async pegarOrdemServicoPorId(id: number): Promise<OrdemServico | null>{
         const idOrdemServicoPego = await prisma.ordemServico.findUnique({
-            where: {id}
+            where: {id},
+            include: {
+                cliente: true,
+                // --- INCLUIR NO DETALHE TAMBÉM ---
+                apontamentosOrdemServico: {
+                    include: { usuario: true },
+                    orderBy: { id: 'asc' }
+                }
+            }
         });
 
         if(!idOrdemServicoPego){

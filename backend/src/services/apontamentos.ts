@@ -26,24 +26,37 @@ export class ApontamentoService {
     }
 
     async criarApontamento(data: any): Promise<Apontamento> {
-        // 1. CRIAÇÃO: Gera um NOVO registro (não sobrescreve nada)
+        // 1. CRIAÇÃO DO APONTAMENTO
         const apontamentoCriado = await prisma.apontamento.create({
             data: {
-                usuarioId: data.usuarioId,
-                ordemServicoId: data.ordemServicoId,
-                ferramentaId: data.ferramentaId || null,
-                materiaPrimaId: data.materiaPrimaId || null,
-                quantidade_utilizada: data.quantidade_utilizada || 0,
-                quantidade_produzida: data.quantidade_produzida || 0,
-                tempo_execucao: data.tempo_execucao || 0,
-                data_apontamento: data.data_apontamento || new Date(),
-                inicio_trabalho: data.inicio_trabalho || null,
-                fim_trabalho: data.fim_trabalho || null,
-                observacao: data.observacao
+               // ... (mesmos campos que já existem)
+               usuarioId: data.usuarioId,
+               ordemServicoId: data.ordemServicoId,
+               ferramentaId: data.ferramentaId || null,
+               materiaPrimaId: data.materiaPrimaId || null,
+               quantidade_utilizada: data.quantidade_utilizada || 0,
+               quantidade_produzida: data.quantidade_produzida || 0,
+               tempo_execucao: data.tempo_execucao || 0,
+               data_apontamento: data.data_apontamento || new Date(),
+               inicio_trabalho: data.inicio_trabalho || null,
+               fim_trabalho: data.fim_trabalho || null,
+               observacao: data.observacao
             }
         });
 
-        // 2. AUTOMAÇÃO: Atualiza o cabeçalho da OS com base em TODOS os apontamentos
+        // 2. LÓGICA DE BAIXA DE ESTOQUE (NOVO)
+        // Se tem Matéria Prima vinculada E quantidade usada > 0
+        if (data.materiaPrimaId && data.quantidade_utilizada > 0) {
+            await prisma.materiaPrima.update({
+                where: { id: data.materiaPrimaId },
+                data: {
+                    // O Prisma faz a subtração atômica (decrement) segura
+                    quantidade_disponivel: { decrement: data.quantidade_utilizada }
+                }
+            });
+        }
+
+        // 3. ATUALIZA O RESUMO DA OS
         await this.atualizarResumoOS(data.ordemServicoId);
 
         return apontamentoCriado;

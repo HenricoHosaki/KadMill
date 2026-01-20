@@ -49,33 +49,36 @@ export class OrdemServicoController {
         try{
             const ordemServico = req.body
 
-            // --- CORREÇÃO IMPORTANTE: Converter Datas ---
-            // O frontend envia texto (ex: "2026-01-17"), o banco precisa de Data real.
-            if (ordemServico.data_abertura) {
-                ordemServico.data_abertura = new Date(ordemServico.data_abertura);
-            }
-            if (ordemServico.data_fechamento) {
-                ordemServico.data_fechamento = new Date(ordemServico.data_fechamento);
-            }
+            // --- CONVERSÃO DE DATAS ---
+            if (ordemServico.data_abertura) ordemServico.data_abertura = new Date(ordemServico.data_abertura);
+            if (ordemServico.data_fechamento) ordemServico.data_fechamento = new Date(ordemServico.data_fechamento);
             if (ordemServico.inicio_servico) ordemServico.inicio_servico = new Date(ordemServico.inicio_servico);
             if (ordemServico.fim_servico) ordemServico.fim_servico = new Date(ordemServico.fim_servico);
-            // -------------------------------------------
+            if (ordemServico.quantidade_esperada) {
+                ordemServico.quantidade_esperada = Number(ordemServico.quantidade_esperada);
+            }
+            
+            // --- CONVERSÃO DE NÚMEROS (CORREÇÃO DO ERRO) ---
+            if (ordemServico.tempo_total_execucao) {
+                ordemServico.tempo_total_execucao = Number(ordemServico.tempo_total_execucao);
+            }
+            if (ordemServico.valor_total) {
+                ordemServico.valor_total = Number(ordemServico.valor_total);
+            }
+            if (ordemServico.clienteId) {
+                ordemServico.clienteId = Number(ordemServico.clienteId);
+            }
+            // -----------------------------------------------
 
             const ordemServicoCriada = await ordemServicoService.adicionarOrdemServico(ordemServico)
 
             if(!ordemServicoCriada){
-                return res.status(400).json({
-                    message: "Informações inválidas"
-                })
+                return res.status(400).json({ message: "Informações inválidas" })
             }
 
-            return res.status(201).json({
-                message: "Ordem de serviço registrada com sucesso"
-            })
+            return res.status(201).json({ message: "Ordem de serviço registrada com sucesso" })
         }catch(err: any){
-            // Adicionei este log para você ver o erro real no terminal se acontecer de novo
             console.error("ERRO DETALHADO AO CRIAR OS:", err); 
-
             res.status(500).json({
                 message: "Erro interno do servidor. Verifique o terminal para detalhes.",
                 error: err.message 
@@ -102,6 +105,9 @@ export class OrdemServicoController {
             }
             if (ordemServico.inicio_servico && typeof ordemServico.inicio_servico === 'string') {
         ordemServico.inicio_servico = new Date(ordemServico.inicio_servico);
+        if (ordemServico.quantidade_esperada) {
+                ordemServico.quantidade_esperada = Number(ordemServico.quantidade_esperada);
+            }
     }
     if (ordemServico.fim_servico && typeof ordemServico.fim_servico === 'string') {
         ordemServico.fim_servico = new Date(ordemServico.fim_servico);

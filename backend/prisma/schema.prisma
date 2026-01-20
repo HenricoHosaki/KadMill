@@ -137,6 +137,7 @@ model OrdemServico {
     executante String?                    // Nome ou ID
     inicio_servico DateTime?
     fim_servico DateTime?
+    quantidade_esperada Int? @default(0)
     // --------------------
 
     apontamentosOrdemServico Apontamento[]

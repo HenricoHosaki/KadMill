@@ -71,7 +71,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         "quantidade_utilizada", "quantidade_produzida", "tempo_execucao", 
         "clienteId", "valor_total", "quantidade_disponivel", "preco_custo",
         "quantidade_estoque", "preco_unitario", "fornecedorId", "custo_unitario",
-        "numero_os"
+        "numero_os", "tempo_total_execucao"
       ];
       
       // 3. CORREÇÃO CRÍTICA PARA NÚMEROS
@@ -222,12 +222,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <label>VALOR TOTAL (R$)</label>
                     <input name="valor_total" type="number" step="0.01" onChange={handleChange} required />
                 </div>
+                
                 <div className="form-group">
                     <label>TEMPO TOTAL ESTIMADO (Min)</label> {/* NOVO */}
                     <input name="tempo_total_execucao" type="number" onChange={handleChange} />
                 </div>
             </div>
-
+                  <div className="form-group">
+                    <label>META DE PRODUÇÃO (Qtd.)</label>
+                    <input name="quantidade_esperada" type="number" onChange={handleChange} placeholder="Ex: 100" />
+                </div>
             <div className="form-row">
               <div className="form-group">
                 <label>DATA DE EMISSÃO</label>
