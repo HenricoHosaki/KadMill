@@ -1,119 +1,130 @@
 import { prisma } from "../config/prisma";
-import { Apontamento, Prisma } from "@prisma/client";
+import { Prisma, Apontamento } from "@prisma/client";
 import { AppError } from "../errors/appError";
 
-export class ApontamentoService{
+export class ApontamentoService {
 
-    async pegarTodosApontamentos(): Promise<Apontamento[]>{
-            const todosApontamentos = await prisma.apontamento.findMany();
-
-            return todosApontamentos
-    };
-
-    async pegarApontamentoPorId(id: number): Promise<Apontamento | null>{
-            const idApontamentoPego = await prisma.apontamento.findUnique({
-            where: {id}
+    async pegarTodosApontamentos(): Promise<Apontamento[]> {
+        return await prisma.apontamento.findMany({
+            include: { 
+                ordemServico: true,
+                usuario: true 
+            }
         });
-
-        if(!idApontamentoPego){
-            throw new AppError("Id de apontamento não encontrado", 404)
-        }
-        return idApontamentoPego
-    };
-
-    async criarApontamento(data: any) {
-    const inicio = new Date(data.data_inicio);
-    const fim = new Date(data.data_fim);
-    
-    // Cálculo da diferença em minutos
-    const diffMs = fim.getTime() - inicio.getTime();
-    const duracaoMinutos = Math.round(diffMs / 60000); // 60000ms = 1 minuto
-
-    if (duracaoMinutos < 0) {
-      throw new AppError("A data final não pode ser anterior à data inicial.");
     }
 
-    // Transação para salvar apontamento e atualizar a OS ao mesmo tempo
-    return await prisma.$transaction(async (tx) => {
-      // 1. Cria o apontamento
-      const novoApontamento = await tx.apontamento.create({
-        data: {
-          usuarioId: Number(data.usuarioId),
-          ordemServicoId: Number(data.ordemServicoId),
-          ferramentaId: data.ferramentaId ? Number(data.ferramentaId) : null,
-          materiaPrimaId: data.materiaPrimaId ? Number(data.materiaPrimaId) : null,
-          quantidade_utilizada: Number(data.quantidade_utilizada || 0),
-          quantidade_produzida: Number(data.quantidade_produzida || 0),
-          observacao: data.observacao,
-          data_inicio: inicio,
-          data_fim: fim,
-          tempo_execucao: duracaoMinutos
-        },
-      });
+    async pegarApontamentoPorId(id: number): Promise<Apontamento | null> {
+        const apontamento = await prisma.apontamento.findUnique({
+            where: { id },
+            include: { ordemServico: true, usuario: true }
+        });
 
-      // 2. Atualiza a Ordem de Serviço com os totais
-      const dadosAtualizacaoOS: any = {
-        tempo_total_execucao: { increment: duracaoMinutos }, // Soma ao total
-        executanteId: Number(data.usuarioId),                // Define o último executante
-        data_fim_servico: fim,                               // Atualiza última atividade
-        status: 'EM ANDAMENTO'
-      };
+        if (!apontamento) {
+            throw new AppError("Apontamento não encontrado", 404);
+        }
+        return apontamento;
+    }
 
-      // Se a OS não tinha data de início, define agora
-      const osAtual = await tx.ordemServico.findUnique({ 
-          where: { id: Number(data.ordemServicoId) } 
-      });
-      if (osAtual && !osAtual.data_inicio_servico) {
-        dadosAtualizacaoOS.data_inicio_servico = inicio;
-      }
+    async criarApontamento(data: any): Promise<Apontamento> {
+        // 1. CRIAÇÃO: Gera um NOVO registro (não sobrescreve nada)
+        const apontamentoCriado = await prisma.apontamento.create({
+            data: {
+                usuarioId: data.usuarioId,
+                ordemServicoId: data.ordemServicoId,
+                ferramentaId: data.ferramentaId || null,
+                materiaPrimaId: data.materiaPrimaId || null,
+                quantidade_utilizada: data.quantidade_utilizada || 0,
+                quantidade_produzida: data.quantidade_produzida || 0,
+                tempo_execucao: data.tempo_execucao || 0,
+                data_apontamento: data.data_apontamento || new Date(),
+                inicio_trabalho: data.inicio_trabalho || null,
+                fim_trabalho: data.fim_trabalho || null,
+                observacao: data.observacao
+            }
+        });
 
-      await tx.ordemServico.update({
-        where: { id: Number(data.ordemServicoId) },
-        data: dadosAtualizacaoOS
-      });
+        // 2. AUTOMAÇÃO: Atualiza o cabeçalho da OS com base em TODOS os apontamentos
+        await this.atualizarResumoOS(data.ordemServicoId);
 
-      return novoApontamento;
-    });
-  }
+        return apontamentoCriado;
+    }
 
-    async atualizarApontamento(id: number, apontamentoData: any): Promise<Apontamento>{
-        
-        const existeApontamento = await prisma.apontamento.findUnique({
-             where: { id }
-        })
+    async atualizarApontamento(id: number, data: any): Promise<Apontamento> {
+        const existe = await prisma.apontamento.findUnique({ where: { id } });
+        if (!existe) throw new AppError("Apontamento não encontrado", 404);
 
-        if(!existeApontamento){
-             throw new AppError("Apontamento não encontrado", 404)
-        };
-        const { 
-            id: _id, 
-            usuario, 
-            ordemServico, 
-            ferramenta, 
-            materiaPrima, 
-            ...dadosLimpos 
-        } = apontamentoData;
+        // Limpeza de dados para não quebrar o Prisma (remove objetos de relação)
+        const { id: _id, usuario, ordemServico, ferramenta, materiaPrima, ...dadosLimpos } = data;
 
-        const apontamentoAtualizado = await prisma.apontamento.update({
+        const atualizado = await prisma.apontamento.update({
             where: { id },
             data: dadosLimpos
-        })
-
-        return apontamentoAtualizado
-    };
-        
-    async deletarApontamento(id: number): Promise<Apontamento> {
-            const apontamentoExiste = await prisma.apontamento.findUnique({
-                where: { id }
-            })
-            
-            if(!apontamentoExiste){
-                throw new AppError("Id de apontamento não encontrado", 404)
-            }
-
-            const deletaApontamento = await prisma.apontamento.delete({
-                where: { id }
         });
-            return deletaApontamento
-    };
-};
+
+        // Recalcula a OS (caso tenha mudado datas ou tempos)
+        await this.atualizarResumoOS(existe.ordemServicoId);
+        
+        return atualizado;
+    }
+
+    async deletarApontamento(id: number): Promise<Apontamento> {
+        const existe = await prisma.apontamento.findUnique({ where: { id } });
+        if (!existe) throw new AppError("Apontamento não encontrado", 404);
+
+        const deletado = await prisma.apontamento.delete({
+            where: { id }
+        });
+
+        // Recalcula a OS (subtrai o tempo do que foi excluído)
+        await this.atualizarResumoOS(existe.ordemServicoId);
+
+        return deletado;
+    }
+
+    // --- A MÁGICA ACONTECE AQUI ---
+    private async atualizarResumoOS(osId: number) {
+        // Busca TODOS os apontamentos vinculados a esta OS
+        const apontamentos = await prisma.apontamento.findMany({
+            where: { ordemServicoId: osId },
+            include: { usuario: true },
+            orderBy: { inicio_trabalho: 'asc' } 
+        });
+
+        if (apontamentos.length === 0) {
+            return; 
+        }
+
+        // 1. SOMA DO TEMPO
+        const tempoTotal = apontamentos.reduce((acc, curr) => acc + (curr.tempo_execucao || 0), 0);
+
+        // 2. DATAS REAIS
+        const datasInicio = apontamentos.map(a => a.inicio_trabalho).filter(d => d !== null) as Date[];
+        const datasFim = apontamentos.map(a => a.fim_trabalho).filter(d => d !== null) as Date[];
+        
+        datasInicio.sort((a, b) => a.getTime() - b.getTime());
+        datasFim.sort((a, b) => a.getTime() - b.getTime());
+
+        // CORREÇÃO 1: Garantir que não seja 'undefined'
+        // Usamos '?? null' para converter qualquer undefined vindo do array em null pro Prisma
+        const inicioReal = datasInicio.length > 0 ? (datasInicio[0] ?? null) : null; 
+        const fimReal = datasFim.length > 0 ? (datasFim[datasFim.length - 1] ?? null) : null; 
+
+        // 3. EXECUTANTE ATUAL
+        const ultimoApontamento = apontamentos[apontamentos.length - 1]; 
+        
+        // CORREÇÃO 2: Uso de '?.' (Optional Chaining) e '??' (Nullish Coalescing)
+        // Se ultimoApontamento for undefined, ou usuario for null, usa "Múltiplos"
+        const nomeExecutante = ultimoApontamento?.usuario?.nome ?? "Múltiplos";
+
+        // 4. ATUALIZAÇÃO DA OS
+        await prisma.ordemServico.update({
+            where: { id: osId },
+            data: {
+                tempo_total_execucao: tempoTotal,
+                inicio_servico: inicioReal, // Agora é garantido Date | null
+                fim_servico: fimReal,       // Agora é garantido Date | null
+                executante: nomeExecutante
+            }
+        });
+    }
+}
