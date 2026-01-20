@@ -57,6 +57,8 @@ export class OrdemServicoController {
             if (ordemServico.data_fechamento) {
                 ordemServico.data_fechamento = new Date(ordemServico.data_fechamento);
             }
+            if (ordemServico.inicio_servico) ordemServico.inicio_servico = new Date(ordemServico.inicio_servico);
+            if (ordemServico.fim_servico) ordemServico.fim_servico = new Date(ordemServico.fim_servico);
             // -------------------------------------------
 
             const ordemServicoCriada = await ordemServicoService.adicionarOrdemServico(ordemServico)
@@ -98,6 +100,12 @@ export class OrdemServicoController {
             if (ordemServico.data_fechamento && typeof ordemServico.data_fechamento === 'string') {
                 ordemServico.data_fechamento = new Date(ordemServico.data_fechamento);
             }
+            if (ordemServico.inicio_servico && typeof ordemServico.inicio_servico === 'string') {
+        ordemServico.inicio_servico = new Date(ordemServico.inicio_servico);
+    }
+    if (ordemServico.fim_servico && typeof ordemServico.fim_servico === 'string') {
+        ordemServico.fim_servico = new Date(ordemServico.fim_servico);
+    }
             // ------------------------------------------------
 
             const ordemServicoAtualizada = await ordemServicoService.atualizarOrdemServico(idConvertido, ordemServico)

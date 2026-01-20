@@ -208,14 +208,26 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <form className="modal-form">
             <div className="form-row">
               <div className="form-group">
-                <label>CLIENTE (SOLICITANTE)</label>
-                <input name="clienteId" type="number" onChange={handleChange} placeholder="ID do cliente" required />
+                <label>CLIENTE (ID)</label>
+                <input name="clienteId" type="number" onChange={handleChange} required />
               </div>
               <div className="form-group">
-                <label>VALOR TOTAL (R$)</label>
-                <input name="valor_total" type="number" step="0.01" onChange={handleChange} placeholder="0,00" required />
+                <label>EQUIPAMENTO</label> {/* NOVO */}
+                <input name="equipamento_utilizado" type="text" onChange={handleChange} placeholder="Ex: Torno CNC" />
               </div>
             </div>
+            
+            <div className="form-row">
+                <div className="form-group">
+                    <label>VALOR TOTAL (R$)</label>
+                    <input name="valor_total" type="number" step="0.01" onChange={handleChange} required />
+                </div>
+                <div className="form-group">
+                    <label>TEMPO TOTAL ESTIMADO (Min)</label> {/* NOVO */}
+                    <input name="tempo_total_execucao" type="number" onChange={handleChange} />
+                </div>
+            </div>
+
             <div className="form-row">
               <div className="form-group">
                 <label>DATA DE EMISSÃO</label>
@@ -227,17 +239,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </div>
             </div>
             
-            {/* NOVO CAMPO ADICIONADO AQUI */}
-            <div className="form-group">
-              <label>EQUIPAMENTO UTILIZADO</label>
-              <input 
-                name="equipamento_utilizado" 
-                type="text" 
-                onChange={handleChange} 
-                placeholder="Ex: Torno CNC, Solda MIG..." 
-              />
-            </div>
-
             <div className="form-group">
               <label>DESCRIÇÃO DO SERVIÇO</label>
               <textarea name="descricao_servico" onChange={handleChange} rows={3} required></textarea>
@@ -248,7 +249,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       case "APONTAMENTO":
         return (
           <form className="modal-form">
-            {/* Bloco 1: Quem e Onde */}
             <div className="form-row">
               <div className="form-group">
                 <label>OPERADOR (ID)</label>
@@ -259,39 +259,31 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <input name="ordemServicoId" type="number" onChange={handleChange} required />
               </div>
             </div>
-
-            {/* Bloco 2: Quando (ALTERADO PARA INICIO/FIM) */}
+            
             <div className="form-row">
               <div className="form-group">
-                <label>INÍCIO DA EXECUÇÃO</label>
-                <input 
-                  name="data_inicio" 
-                  type="datetime-local" 
-                  onChange={handleChange} 
-                  required 
-                />
+                <label>INÍCIO TRABALHO</label> {/* NOVO */}
+                <input name="inicio_trabalho" type="datetime-local" onChange={handleChange} />
               </div>
               <div className="form-group">
-                <label>FIM DA EXECUÇÃO</label>
-                <input 
-                  name="data_fim" 
-                  type="datetime-local" 
-                  onChange={handleChange} 
-                  required 
-                />
+                <label>FIM TRABALHO</label> {/* NOVO */}
+                <input name="fim_trabalho" type="datetime-local" onChange={handleChange} />
               </div>
             </div>
-            
-            {/* Campo oculto ou apenas informativo se necessário, data de registro */}
-            <div className="form-group">
-                <label>DATA DE REGISTRO</label>
-                <input name="data_apontamento" type="date" onChange={handleChange} defaultValue={new Date().toISOString().split('T')[0]} disabled />
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>DATA REGISTRO</label>
+                <input name="data_apontamento" type="date" onChange={handleChange} defaultValue={new Date().toISOString().split('T')[0]} />
+              </div>
+              <div className="form-group">
+                <label>TEMPO (MIN)</label>
+                <input name="tempo_execucao" type="number" onChange={handleChange} required />
+              </div>
             </div>
 
-             {/* Bloco 3: Recursos e Produção (ATUALIZADO) */}
+             {/* ... (Bloco de Insumos/Ferramentas continua igual) ... */}
              <div style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }}>
-                
-                {/* Linha de Recursos: MP e Ferramenta */}
                 <div className="form-row" style={{ marginBottom: "10px" }}>
                     <div className="form-group">
                         <label>ID MATÉRIA PRIMA</label>
@@ -302,16 +294,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                         <input name="ferramentaId" type="number" onChange={handleChange} placeholder="Opcional" />
                     </div>
                 </div>
-
-                {/* Linha de Quantidades */}
                 <div className="form-row">
                     <div className="form-group">
                         <label style={{ color: "#d9534f" }}>QTD. MP USADA</label>
-                        <input name="quantidade_utilizada" type="number" onChange={handleChange} placeholder="Kg / Unid" />
+                        <input name="quantidade_utilizada" type="number" onChange={handleChange} />
                     </div>
                     <div className="form-group">
                         <label style={{ color: "#5cb85c" }}>QTD. PRODUZIDA</label>
-                        <input name="quantidade_produzida" type="number" onChange={handleChange} placeholder="Peças Feitas" />
+                        <input name="quantidade_produzida" type="number" onChange={handleChange} />
                     </div>
                 </div>
             </div>

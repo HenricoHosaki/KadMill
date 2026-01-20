@@ -52,6 +52,8 @@ export class ApontamentoController {
             if(apontamento.data_apontamento && typeof apontamento.data_apontamento === 'string'){
                 apontamento.data_apontamento = new Date(apontamento.data_apontamento);
             }
+            if (apontamento.inicio_trabalho) apontamento.inicio_trabalho = new Date(apontamento.inicio_trabalho);
+    if (apontamento.fim_trabalho) apontamento.fim_trabalho = new Date(apontamento.fim_trabalho);
             // ------------------------
 
             const apontamentoCriado = await apontamentoService.criarApontamento(apontamento)
@@ -80,6 +82,12 @@ export class ApontamentoController {
             if (apontamento.data_apontamento && typeof apontamento.data_apontamento === 'string') {
                 apontamento.data_apontamento = new Date(apontamento.data_apontamento);
             }
+            if (apontamento.inicio_trabalho && typeof apontamento.inicio_trabalho === 'string') {
+        apontamento.inicio_trabalho = new Date(apontamento.inicio_trabalho);
+    }
+    if (apontamento.fim_trabalho && typeof apontamento.fim_trabalho === 'string') {
+        apontamento.fim_trabalho = new Date(apontamento.fim_trabalho);
+    }
 
             const apontamentoAtualizado = await apontamentoService.atualizarApontamento(idConvertido, apontamento)
 

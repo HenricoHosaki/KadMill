@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
- // url      = env("DATABASE_URL")
+ //url      = env("DATABASE_URL")
 }
 
 enum Funcao {
@@ -35,7 +35,6 @@ model Usuario {
   status          Status        @default(ATIVO)
   data_admissao   DateTime      @default(now())
   apontamentosUsuario Apontamento[]
-  ordensExecutadas OrdemServico[] @relation("ExecutanteOS") 
 }
 
 model Fornecedor {
@@ -121,42 +120,46 @@ model Produto {
 }
 
 model OrdemServico {
-  id                  Int @id @default(autoincrement())
-  numero_os           String @unique
-  cliente             Cliente @relation(fields: [clienteId], references: [id])
-  clienteId           Int
-  descricao_servico   String
-  data_abertura       DateTime @default(now())
-  equipamento_utilizado String?
-  tempo_total_execucao  Int @default(0)
-  executante Usuario? @relation("ExecutanteOS", fields: [executanteId], references: [id])
-  executanteId Int?
-  data_inicio_servico DateTime?
-  data_fim_servico DateTime?
-  data_fechamento DateTime?
-  status              String    @default("ABERTA")
-  valor_total         Decimal   @db.Decimal(10, 2)
-  observacao          String?
-  apontamentosOrdemServico Apontamento[]
+    id Int @id @default(autoincrement())
+    numero_os String @unique
+    cliente Cliente @relation(fields: [clienteId], references: [id])
+    clienteId Int
+    descricao_servico String
+    data_abertura DateTime @default(now())
+    data_fechamento DateTime?
+    status String @default("ABERTA")
+    valor_total Decimal @db.Decimal(10,2)
+    observacao String?
+    
+    // --- NOVOS CAMPOS ---
+    equipamento_utilizado String?
+    tempo_total_execucao Int? @default(0) // Minutos
+    executante String?                    // Nome ou ID
+    inicio_servico DateTime?
+    fim_servico DateTime?
+    // --------------------
+
+    apontamentosOrdemServico Apontamento[]
 }
 
 model Apontamento {
-  id               Int            @id @default(autoincrement())
-  usuario          Usuario        @relation(fields: [usuarioId], references: [id])
-  usuarioId        Int
-  ordemServico     OrdemServico   @relation(fields: [ordemServicoId], references: [id])
-  ordemServicoId   Int
-  ferramenta       Ferramenta?    @relation(fields: [ferramentaId], references: [id])
-  ferramentaId     Int?
-  materiaPrima     MateriaPrima?  @relation(fields: [materiaPrimaId], references: [id])
-  materiaPrimaId   Int?
-  
-  quantidade_utilizada Int @default(0)
-  quantidade_produzida Int @default(0)
-  data_inicio DateTime?
-  data_fim DateTime?
-  
-  data_apontamento DateTime @default(now())
-  tempo_execucao Int @default(0)
-  observacao String?
+    id Int @id @default (autoincrement())
+    usuario Usuario @relation(fields: [usuarioId], references: [id])
+    usuarioId Int
+    ordemServico OrdemServico @relation(fields: [ordemServicoId], references: [id])
+    ordemServicoId Int
+    ferramenta Ferramenta? @relation(fields: [ferramentaId], references: [id])
+    ferramentaId Int?
+    materiaPrima MateriaPrima? @relation(fields: [materiaPrimaId], references: [id])
+    materiaPrimaId Int?
+    quantidade_utilizada Int @default(0)
+    quantidade_produzida Int @default(0)
+    data_apontamento DateTime @default(now())
+    tempo_execucao Int @default(0)
+    observacao String?
+
+    // --- NOVOS CAMPOS ---
+    inicio_trabalho DateTime?
+    fim_trabalho DateTime?
+    // --------------------
 }
