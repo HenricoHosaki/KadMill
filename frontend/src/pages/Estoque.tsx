@@ -118,6 +118,8 @@ const Estoque: React.FC = () => {
     setEditData((prev: any) => ({ ...prev, [name]: value }));
   };
 
+  // ... dentro de Estoque.tsx ...
+
   const handleSaveEdit = async () => {
     try {
       let endpoint = "";
@@ -127,12 +129,20 @@ const Estoque: React.FC = () => {
         "quantidade_estoque", "quantidade_disponivel", "preco_unitario", 
         "custo_unitario", "valor_unitario", "valor_total",
         "quantidade_utilizada", "quantidade_produzida", "tempo_execucao",
-        "ferramentaId", "materiaPrimaId", "usuarioId", "ordemServicoId"
+        "ferramentaId", "materiaPrimaId", "usuarioId", "ordemServicoId",
+        "clienteId", "tempo_total_execucao", "quantidade_esperada" // <--- CAMPOS IMPORTANTES
       ];
       
+      // Converte tudo o que for numérico
       numericFields.forEach(field => {
-        if(payload[field]) payload[field] = Number(payload[field]);
+        if(payload[field] !== undefined && payload[field] !== null && payload[field] !== "") {
+            payload[field] = Number(payload[field]);
+        }
       });
+
+      // Remove campos de data vazios para não dar erro
+      if (payload.inicio_trabalho === "") payload.inicio_trabalho = null;
+      if (payload.fim_trabalho === "") payload.fim_trabalho = null;
 
       switch (abaAtiva) {
         case "PRODUTO": endpoint = `/produtos/${payload.id}`; break;
@@ -147,11 +157,9 @@ const Estoque: React.FC = () => {
       setIsEditing(false);
       fetchData(); 
       
-      if(produtoSelecionado) setProdutoSelecionado(payload);
-      if(mpSelecionada) setMpSelecionada(payload);
-      if(ferramentaSelecionada) setFerramentaSelecionada(payload);
-      if(osSelecionada) setOsSelecionada(payload);
-      if(apontamentoSelecionado) setApontamentoSelecionado(payload);
+      // Atualiza os modais abertos para refletir a mudança imediata
+      if(osSelecionada && abaAtiva === "ORDEM_SERVICO") setOsSelecionada(payload);
+      if(apontamentoSelecionado && abaAtiva === "APONTAMENTO") setApontamentoSelecionado(payload);
 
     } catch (error) {
       console.error("Erro ao atualizar:", error);
@@ -492,22 +500,21 @@ const Estoque: React.FC = () => {
                             <p><strong>Início:</strong> {apontamentoSelecionado.inicio_trabalho ? new Date(apontamentoSelecionado.inicio_trabalho).toLocaleString() : "-"}</p>
                             <p><strong>Fim:</strong> {apontamentoSelecionado.fim_trabalho ? new Date(apontamentoSelecionado.fim_trabalho).toLocaleString() : "-"}</p>
                             <p><strong>Tempo Total:</strong> {apontamentoSelecionado.tempo_execucao} min</p>
-                            <p><strong>Data Reg.:</strong> {new Date(apontamentoSelecionado.data_apontamento).toLocaleDateString()}</p>
                         </div>
-                        {/* ... Restante da visualização (Recursos e Observação) ... */}
+                        
                          <div style={{ marginTop: "15px", padding: "10px", background: "#f8f9fa", borderRadius: "4px", border: "1px solid #ddd" }}>
                             <h4 style={{ fontSize: "0.9rem", color: "#333", marginBottom: "10px" }}>Recursos e Produção</h4>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                                <p><strong>Ferramenta:</strong> {apontamentoSelecionado.ferramentaId || "-"}</p>
-                                <p><strong>Matéria Prima:</strong> {apontamentoSelecionado.materiaPrimaId || "-"}</p>
-                                <p><strong>Qtd. MP:</strong> {apontamentoSelecionado.quantidade_utilizada}</p>
-                                <p><strong>Produzido:</strong> {apontamentoSelecionado.quantidade_produzida}</p>
+                                <p><strong>Ferramenta (ID):</strong> {apontamentoSelecionado.ferramentaId || "-"}</p>
+                                <p><strong>Matéria Prima (ID):</strong> {apontamentoSelecionado.materiaPrimaId || "-"}</p>
+                                <p><strong>Qtd. MP Usada:</strong> {apontamentoSelecionado.quantidade_utilizada}</p>
+                                <p><strong>Qtd. Produzida:</strong> {apontamentoSelecionado.quantidade_produzida}</p>
                             </div>
                         </div>
                         <div style={{marginTop: "10px"}}><strong>Obs:</strong> {apontamentoSelecionado.observacao}</div>
                     </>
                 ) : (
-                    // --- MODO EDIÇÃO ---
+                    // --- MODO EDIÇÃO (AGORA COM OS CAMPOS QUE FALTAVAM) ---
                     <>
                         <div className="form-row">
                             <div className="form-group">
@@ -519,12 +526,37 @@ const Estoque: React.FC = () => {
                                 <input type="datetime-local" name="fim_trabalho" value={editData.fim_trabalho ? new Date(editData.fim_trabalho).toISOString().slice(0, 16) : ""} onChange={handleEditChange} />
                             </div>
                         </div>
+                        
                         <div className="form-row">
                              <div className="form-group"><label>Tempo (min)</label><input type="number" name="tempo_execucao" value={editData.tempo_execucao} onChange={handleEditChange} /></div>
                              <div className="form-group"><label>Data Reg.</label><input type="date" name="data_apontamento" value={editData.data_apontamento ? new Date(editData.data_apontamento).toISOString().split('T')[0] : ""} onChange={handleEditChange} /></div>
                         </div>
-                        {/* ... Campos de Recursos iguais ao anterior ... */}
-                        <div className="form-group"><label>Observação</label><textarea name="observacao" value={editData.observacao || ""} onChange={handleEditChange} /></div>
+
+                        {/* --- CAMPOS DE RECURSOS (ADICIONADOS) --- */}
+                        <div style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd", margin: "10px 0" }}>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>ID Ferramenta</label>
+                                    <input type="number" name="ferramentaId" value={editData.ferramentaId || ""} onChange={handleEditChange} placeholder="ID" />
+                                </div>
+                                <div className="form-group">
+                                    <label>ID Matéria Prima</label>
+                                    <input type="number" name="materiaPrimaId" value={editData.materiaPrimaId || ""} onChange={handleEditChange} placeholder="ID" />
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Qtd. MP Usada</label>
+                                    <input type="number" name="quantidade_utilizada" value={editData.quantidade_utilizada} onChange={handleEditChange} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Qtd. Produzida</label>
+                                    <input type="number" name="quantidade_produzida" value={editData.quantidade_produzida} onChange={handleEditChange} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="form-group"><label>Observação</label><textarea name="observacao" value={editData.observacao || ""} onChange={handleEditChange} rows={2} /></div>
                     </>
                 )}
                 <ModalActions id={apontamentoSelecionado.id} />
@@ -539,83 +571,139 @@ const Estoque: React.FC = () => {
                 {!isEditing ? (
                     // --- MODO VISUALIZAÇÃO ---
                     <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                        {/* 1. Cabeçalho Básico */}
+                        {/* 1. Cabeçalho */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
                             <p><strong>Cliente:</strong> {osSelecionada.cliente?.nome || osSelecionada.clienteId}</p>
                             <p><strong>Equipamento:</strong> {osSelecionada.equipamento_utilizado || "-"}</p>
                             <p><strong>Status:</strong> <span className={`status-badge ${osSelecionada.status}`}>{osSelecionada.status}</span></p>
-                            <p><strong>Valor:</strong> R$ {Number(osSelecionada.valor_total || 0).toFixed(2)}</p>
+                            <p><strong>Valor Total:</strong> R$ {Number(osSelecionada.valor_total || 0).toFixed(2)}</p>
                         </div>
 
-                        {/* 2. CÁLCULO DE PRODUÇÃO (A Lógica que você pediu) */}
+                        {/* 2. Barra de Progresso (Meta) */}
                         {(() => {
-                            // Calcula o total produzido somando os apontamentos
                             const totalProduzido = osSelecionada.apontamentosOrdemServico?.reduce((acc: number, ap: any) => acc + (ap.quantidade_produzida || 0), 0) || 0;
                             const meta = osSelecionada.quantidade_esperada || 0;
                             const falta = meta - totalProduzido;
-                            // Define a cor: Verde se atingiu, Laranja se falta, Cinza se não tem meta
-                            const corProgresso = meta > 0 ? (totalProduzido >= meta ? "#f6ffed" : "#fff7e6") : "#f0f0f0";
-                            const bordaProgresso = meta > 0 ? (totalProduzido >= meta ? "#b7eb8f" : "#ffd591") : "#d9d9d9";
-
                             return (
-                                <div style={{ background: corProgresso, padding: "10px", borderRadius: "4px", border: `1px solid ${bordaProgresso}` }}>
-                                    <h4 style={{ margin: "0 0 10px 0", fontSize: "0.9rem", color: "#333" }}>🏭 Status da Produção</h4>
-                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", fontSize: "0.9rem" }}>
-                                        <div style={{textAlign: "center"}}>
-                                            <span style={{display:"block", fontSize:"0.8rem", color:"#666"}}>META</span>
-                                            <strong>{meta}</strong>
-                                        </div>
-                                        <div style={{textAlign: "center"}}>
-                                            <span style={{display:"block", fontSize:"0.8rem", color:"#666"}}>FEITO</span>
-                                            <strong style={{color: "#389e0d"}}>{totalProduzido}</strong>
-                                        </div>
-                                        <div style={{textAlign: "center"}}>
-                                            <span style={{display:"block", fontSize:"0.8rem", color:"#666"}}>FALTA</span>
-                                            <strong style={{color: falta > 0 ? "#d46b08" : "#389e0d"}}>{falta > 0 ? falta : "0"}</strong>
-                                        </div>
+                                <div style={{ background: "#f6ffed", padding: "10px", borderRadius: "4px", border: "1px solid #b7eb8f" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem", marginBottom: "5px" }}>
+                                        <span><strong>Meta:</strong> {meta}</span>
+                                        <span style={{color: "#389e0d"}}><strong>Feito:</strong> {totalProduzido}</span>
+                                        <span style={{color: falta > 0 ? "#d46b08" : "#389e0d"}}><strong>Falta:</strong> {falta > 0 ? falta : 0}</span>
                                     </div>
                                     {meta > 0 && (
-                                        <div style={{width: "100%", background: "#ddd", height: "8px", borderRadius: "4px", marginTop: "10px", overflow: "hidden"}}>
-                                            <div style={{
-                                                width: `${Math.min((totalProduzido / meta) * 100, 100)}%`, 
-                                                background: totalProduzido >= meta ? "#52c41a" : "#faad14", 
-                                                height: "100%"
-                                            }}></div>
+                                        <div style={{width: "100%", background: "#ddd", height: "8px", borderRadius: "4px", overflow: "hidden"}}>
+                                            <div style={{ width: `${Math.min((totalProduzido / meta) * 100, 100)}%`, background: totalProduzido >= meta ? "#52c41a" : "#faad14", height: "100%" }}></div>
                                         </div>
                                     )}
                                 </div>
                             );
                         })()}
 
-                        {/* 3. Resumo de Tempos (já existente) */}
+                        {/* 3. Resumo de Tempo */}
                         <div style={{ background: "#e6f7ff", padding: "10px", borderRadius: "4px", border: "1px solid #91d5ff" }}>
-                             {/* ... (código existente do resumo de tempo) ... */}
-                             <h4 style={{ margin: "0 0 10px 0", fontSize: "0.9rem", color: "#0050b3" }}>📊 Resumo de Tempo</h4>
-                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "0.85rem" }}>
-                                <div><strong>Início:</strong> {osSelecionada.inicio_servico ? new Date(osSelecionada.inicio_servico).toLocaleString() : "-"}</div>
-                                <div><strong>Fim:</strong> {osSelecionada.fim_servico ? new Date(osSelecionada.fim_servico).toLocaleString() : "-"}</div>
-                                <div style={{gridColumn: "1 / -1"}}><strong>Tempo Total Gasto:</strong> {osSelecionada.tempo_total_execucao} min</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", fontSize: "0.85rem" }}>
+                                <div><strong>Início Geral:</strong><br/> {osSelecionada.inicio_servico ? new Date(osSelecionada.inicio_servico).toLocaleString() : "-"}</div>
+                                <div><strong>Último Fim:</strong><br/> {osSelecionada.fim_servico ? new Date(osSelecionada.fim_servico).toLocaleString() : "-"}</div>
+                                <div><strong>Tempo Total:</strong><br/> {osSelecionada.tempo_total_execucao} min</div>
                             </div>
                         </div>
 
-                        {/* 4. Tabela de Histórico (já existente) */}
-                        {/* ... */}
+                        {/* 4. LISTA SEPARADA DE APONTAMENTOS */}
+                        <div>
+                            <h4 style={{ margin: "0 0 5px 0", fontSize: "0.9rem", borderBottom: "1px solid #eee", paddingBottom: "5px" }}>🔨 Histórico Detalhado</h4>
+                            {osSelecionada.apontamentosOrdemServico && osSelecionada.apontamentosOrdemServico.length > 0 ? (
+                                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+                                    <thead>
+                                        <tr style={{ background: "#f9f9f9", textAlign: "left" }}>
+                                            <th style={{ padding: "5px" }}>Op.</th>
+                                            <th style={{ padding: "5px" }}>Início</th>
+                                            <th style={{ padding: "5px" }}>Fim</th>
+                                            <th style={{ padding: "5px" }}>Tempo</th>
+                                            <th style={{ padding: "5px" }}>Prod.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {osSelecionada.apontamentosOrdemServico.map((ap: any) => (
+                                            <tr key={ap.id} style={{ borderBottom: "1px solid #eee" }}>
+                                                <td style={{ padding: "5px" }}>{ap.usuario?.nome || ap.usuarioId}</td>
+                                                <td style={{ padding: "5px" }}>{ap.inicio_trabalho ? new Date(ap.inicio_trabalho).toLocaleTimeString() : "-"}</td>
+                                                <td style={{ padding: "5px" }}>{ap.fim_trabalho ? new Date(ap.fim_trabalho).toLocaleTimeString() : "-"}</td>
+                                                <td style={{ padding: "5px" }}>{ap.tempo_execucao} min</td>
+                                                <td style={{ padding: "5px" }}>{ap.quantidade_produzida}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : ( <p style={{ color: "#888", fontSize: "0.8rem" }}>Sem apontamentos.</p> )}
+                        </div>
                     </div>
                 ) : (
-                    // --- MODO EDIÇÃO ---
+                    // --- MODO EDIÇÃO COMPLETO (TODOS OS CAMPOS) ---
                     <>
                         <div className="form-row">
-                            <div className="form-group"><label>Meta Produção (Qtd)</label><input type="number" name="quantidade_esperada" value={editData.quantidade_esperada || 0} onChange={handleEditChange} /></div>
-                            <div className="form-group"><label>Equipamento</label><input name="equipamento_utilizado" value={editData.equipamento_utilizado || ""} onChange={handleEditChange} /></div>
+                             <div className="form-group">
+                                <label>Meta Produção (Qtd)</label>
+                                <input type="number" name="quantidade_esperada" value={editData.quantidade_esperada || 0} onChange={handleEditChange} />
+                            </div>
+                             <div className="form-group">
+                                <label>Equipamento</label>
+                                <input name="equipamento_utilizado" value={editData.equipamento_utilizado || ""} onChange={handleEditChange} />
+                            </div>
                         </div>
-                        {/* ... (outros campos de edição já existentes) ... */}
+
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Valor Total (R$)</label>
+                                <input type="number" name="valor_total" value={editData.valor_total} onChange={handleEditChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Status</label>
+                                <select name="status" value={editData.status} onChange={handleEditChange}>
+                                    <option value="ABERTA">Aberta</option>
+                                    <option value="EM_ANDAMENTO">Em Andamento</option>
+                                    <option value="CONCLUIDA">Concluída</option>
+                                    <option value="CANCELADA">Cancelada</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Data de Emissão</label>
+                                <input 
+                                    type="date" 
+                                    name="data_abertura" 
+                                    value={editData.data_abertura ? new Date(editData.data_abertura).toISOString().split('T')[0] : ""} 
+                                    onChange={handleEditChange} 
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Prazo de Entrega</label>
+                                <input 
+                                    type="date" 
+                                    name="data_fechamento" 
+                                    value={editData.data_fechamento ? new Date(editData.data_fechamento).toISOString().split('T')[0] : ""} 
+                                    onChange={handleEditChange} 
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Descrição do Serviço</label>
+                            <textarea name="descricao_servico" rows={3} value={editData.descricao_servico} onChange={handleEditChange} />
+                        </div>
+                        
+                         <div className="form-group">
+                            <label>Observação</label>
+                            <textarea name="observacao" rows={2} value={editData.observacao || ""} onChange={handleEditChange} />
+                        </div>
                     </>
                 )}
                 <ModalActions id={osSelecionada.id} />
             </div>
         )}
       </Modal>
-
     </div>
   );
 };

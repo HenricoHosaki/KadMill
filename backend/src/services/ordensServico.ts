@@ -5,43 +5,35 @@ import { AppError } from "../errors/appError";
 export class OrdemServicoService{
 
     async pegarTodasOrdensServicos(): Promise<OrdemServico[]> {
-        const todasOrdensServicos = await prisma.ordemServico.findMany({
+        return await prisma.ordemServico.findMany({
             include: {
                 cliente: true,
-                // --- INCLUIR APONTAMENTOS E OPERADORES ---
+                // --- ISTO É OBRIGATÓRIO PARA A TABELA APARECER ---
                 apontamentosOrdemServico: {
                     include: { usuario: true },
-                    orderBy: { id: 'asc' } // Ordem cronológica
+                    orderBy: { id: 'asc' }
                 }
-                // -----------------------------------------
+                // -------------------------------------------------
             },
-            orderBy: {
-                id: 'desc'
-            }
+            orderBy: { id: 'desc' }
         });
-        
-        return todasOrdensServicos;
     };
 
     async pegarOrdemServicoPorId(id: number): Promise<OrdemServico | null>{
-        const idOrdemServicoPego = await prisma.ordemServico.findUnique({
+        const os = await prisma.ordemServico.findUnique({
             where: {id},
             include: {
                 cliente: true,
-                // --- INCLUIR NO DETALHE TAMBÉM ---
+                // --- ISTO TAMBÉM ---
                 apontamentosOrdemServico: {
                     include: { usuario: true },
                     orderBy: { id: 'asc' }
                 }
             }
         });
-
-        if(!idOrdemServicoPego){
-            throw new AppError("Id de ordem de serviço não encontrado", 404)
-        };
-        return idOrdemServicoPego
+        // ... (restante do código igual)
+        return os;
     };
-
     async adicionarOrdemServico(OrdemServicoData: any): Promise<OrdemServico>{
         
         // Usamos uma transação para garantir que tudo acontece de uma vez

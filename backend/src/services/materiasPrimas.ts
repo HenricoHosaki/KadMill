@@ -20,15 +20,46 @@ export class MateriaPrimaService{
         return idMateriaPrimaPego
     };
 
-    async adicionarMateriaPrima(MateriaPrimaData: Prisma.MateriaPrimaCreateInput): Promise<MateriaPrima>{
-        const materialPrimaCriada = await prisma.materiaPrima.create({
-                data: MateriaPrimaData
+    async adicionarMateriaPrima(MateriaPrimaData: any): Promise<MateriaPrima> {
+        
+        // 1. Verifica se já existe pelo NOME (ignora maiúsculas/minúsculas)
+        const existe = await prisma.materiaPrima.findFirst({
+            where: {
+                nome: {
+                    equals: MateriaPrimaData.nome,
+                    mode: 'insensitive' // Torna "Ferro" igual a "ferro"
+                }
+            }
         });
 
-        if(!materialPrimaCriada){
-            throw new AppError("Não foi possível registrar a matéria prima")
+        if (existe) {
+            // 2. Se existe, ATUALIZA o stock (soma a nova quantidade)
+            const atualizada = await prisma.materiaPrima.update({
+                where: { id: existe.id },
+                data: {
+                    quantidade_disponivel: {
+                        increment: Number(MateriaPrimaData.quantidade_disponivel)
+                    },
+                    // Opcional: Atualizar preço se quiser
+                    // valor_unitario: Number(MateriaPrimaData.valor_unitario) 
+                }
+            });
+            return atualizada;
         }
-        return materialPrimaCriada
+
+        // 3. Se não existe, CRIA um novo normalmente
+        const novaMateriaPrima = await prisma.materiaPrima.create({
+            data: {
+                nome: MateriaPrimaData.nome,
+                descricao: MateriaPrimaData.descricao,
+                unidade_medida: MateriaPrimaData.unidade_medida,
+                quantidade_disponivel: Number(MateriaPrimaData.quantidade_disponivel),
+                valor_unitario: Number(MateriaPrimaData.valor_unitario),
+                fornecedorId: Number(MateriaPrimaData.fornecedorId)
+            }
+        });
+
+        return novaMateriaPrima;
     };
 
     async atualizarMateriaPrima(id: number, MateriaPrimaData: Prisma.MateriaPrimaUpdateInput): Promise<MateriaPrima>{
