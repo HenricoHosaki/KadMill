@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Modal from "./Modal";
 import { api } from "../services/api";
-import { isAdmin } from "../utils/authUtils"; // Certifique-se de ter criado este arquivo conforme o passo anterior
+import { isAdmin } from "../utils/authUtils";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
@@ -101,7 +101,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
-  // --- SEU CONTEÚDO DE MODAL ORIGINAL (MANTIDO) ---
+  // --- SEU CONTEÚDO DE MODAL ORIGINAL (COM OS NOVOS CAMPOS ADICIONADOS) ---
   const renderModalContent = () => {
     switch (activeModal) {
       case "PRODUTO":
@@ -226,6 +226,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <input name="data_fechamento" type="date" onChange={handleChange} />
               </div>
             </div>
+            
+            {/* NOVO CAMPO ADICIONADO AQUI */}
+            <div className="form-group">
+              <label>EQUIPAMENTO UTILIZADO</label>
+              <input 
+                name="equipamento_utilizado" 
+                type="text" 
+                onChange={handleChange} 
+                placeholder="Ex: Torno CNC, Solda MIG..." 
+              />
+            </div>
+
             <div className="form-group">
               <label>DESCRIÇÃO DO SERVIÇO</label>
               <textarea name="descricao_servico" onChange={handleChange} rows={3} required></textarea>
@@ -248,16 +260,32 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </div>
             </div>
 
-            {/* Bloco 2: Quando e Quanto Tempo */}
+            {/* Bloco 2: Quando (ALTERADO PARA INICIO/FIM) */}
             <div className="form-row">
               <div className="form-group">
-                <label>DATA DO TRABALHO</label>
-                <input name="data_apontamento" type="date" onChange={handleChange} defaultValue={new Date().toISOString().split('T')[0]} />
+                <label>INÍCIO DA EXECUÇÃO</label>
+                <input 
+                  name="data_inicio" 
+                  type="datetime-local" 
+                  onChange={handleChange} 
+                  required 
+                />
               </div>
               <div className="form-group">
-                <label>TEMPO (MIN)</label>
-                <input name="tempo_execucao" type="number" onChange={handleChange} required />
+                <label>FIM DA EXECUÇÃO</label>
+                <input 
+                  name="data_fim" 
+                  type="datetime-local" 
+                  onChange={handleChange} 
+                  required 
+                />
               </div>
+            </div>
+            
+            {/* Campo oculto ou apenas informativo se necessário, data de registro */}
+            <div className="form-group">
+                <label>DATA DE REGISTRO</label>
+                <input name="data_apontamento" type="date" onChange={handleChange} defaultValue={new Date().toISOString().split('T')[0]} disabled />
             </div>
 
              {/* Bloco 3: Recursos e Produção (ATUALIZADO) */}
@@ -267,11 +295,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <div className="form-row" style={{ marginBottom: "10px" }}>
                     <div className="form-group">
                         <label>ID MATÉRIA PRIMA</label>
-                        <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="Obrigatório" />
+                        <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="Opcional" />
                     </div>
                     <div className="form-group">
                         <label>ID FERRAMENTA</label>
-                        <input name="ferramentaId" type="number" onChange={handleChange} placeholder="Obrigatório" />
+                        <input name="ferramentaId" type="number" onChange={handleChange} placeholder="Opcional" />
                     </div>
                 </div>
 
