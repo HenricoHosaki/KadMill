@@ -40,20 +40,20 @@ export async function autenticadorMiddleware(req: Request, res: Response, next: 
   const [, token] = authHeader.split(" ");
   
   if (!token) {
-  return res.status(401).json({ error: "Token malformado" });
+    return res.status(401).json({ error: "Token malformado" });
   }
 
   try {
-  const tokenBlacklisted = await redis.get(token);
+    const tokenBlacklisted = await redis.get(token);
 
-  if (tokenBlacklisted) {
-  return res.status(401).json({ error: "Token revogado" });
-  }
+    if (tokenBlacklisted) {
+      return res.status(401).json({ error: "Token revogado" });
+    }
 
-      const decoded = jwt.verify(
+    const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET as string
-      ) as JwtPayloadCustom;
+    ) as JwtPayloadCustom;
 
     req.usuario = {
       id: decoded.id,
@@ -62,6 +62,11 @@ export async function autenticadorMiddleware(req: Request, res: Response, next: 
 
     return next();
   } catch (error: any) {
+    // ALTERAÇÃO AQUI: Verifica se o erro é especificamente do JWT
+    if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: "Sessão expirada", message: "Faça login novamente." });
+    }
+
     console.error("DEBUG - Erro no Middleware:", error.message);
     return res.status(500).json({ error: "Erro interno", message: error.message });
   }

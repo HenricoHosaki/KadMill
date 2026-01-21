@@ -28,7 +28,16 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Se deu erro, entra aqui AUTOMATICAMENTE
+    // --- NOVO: REDIRECIONAMENTO DE SESSÃO EXPIRADA ---
+    // Se o backend responder 401 (Não autorizado), forçamos o logout.
+    if (error.response?.status === 401) {
+      localStorage.removeItem("kadmill:token");
+      // Usa window.location para garantir um refresh limpo e redirecionar
+      window.location.href = "/login";
+      return Promise.reject(error);
+    }
+
+    // Se deu erro (e não for 401), entra aqui AUTOMATICAMENTE
     let mensagem = "Ocorreu um erro inesperado.";
 
     // Tenta pegar a mensagem explicativa que o Backend mandou (ex: "Estoque insuficiente")
