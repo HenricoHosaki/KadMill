@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import Home from "../pages/Home";
 import Estoque from "../pages/Estoque";
 import Contatos from "../pages/Contatos";
+import ImpressaoOS from "../pages/ImpressaoOs";
 import Admin from "../pages/Admin"; // <--- Importante: Importar a página Admin
 import Login from "../pages/Login";
 import { isAdmin } from "../utils/authUtils"; // <--- Importante: Importar a verificação
@@ -37,6 +38,8 @@ const AppRouter: React.FC = () => {
       
       {/* Qualquer outra rota vai para o início */}
       <Route path="*" element={<Navigate to="/" replace />} />
+
+      <Route path="/imprimir/os/:id" element={<PrivateRoute><ImpressaoOS /></PrivateRoute>} />
     </Routes>
   );
 };
