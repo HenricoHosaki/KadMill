@@ -572,7 +572,79 @@ const Estoque: React.FC = () => {
                          <div className="form-group"><label>Observação</label><textarea name="observacao" rows={2} value={editData.observacao || ""} onChange={handleEditChange} /></div>
                     </>
                 )}
-                <ModalActions id={osSelecionada.id} />
+                {/* --- RODAPÉ PERSONALIZADO PARA OS (COM IMPRESSÃO) --- */}
+<div className="modal-footer" style={{ marginTop: "20px", borderTop: "1px solid #eee", paddingTop: "15px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    
+    {/* GRUPO ESQUERDA: Ações Extras (Imprimir + Excluir) */}
+    <div style={{ display: "flex", gap: "10px" }}>
+        
+        {/* BOTÃO IMPRIMIR */}
+        <button
+            type="button"
+            onClick={() => window.open(`/imprimir/os/${osSelecionada.id}`, '_blank')}
+            style={{
+                backgroundColor: "#6c757d",
+                color: "white",
+                border: "none",
+                padding: "8px 15px",
+                borderRadius: "4px",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "5px"
+            }}
+            title="Gerar PDF para Impressão"
+        >
+            🖨️ Imprimir
+        </button>
+
+        {/* BOTÃO EXCLUIR (Reutiliza sua função handleDelete existente) */}
+        {userIsAdmin && (
+            <button
+                type="button"
+                onClick={() => handleDelete(osSelecionada.id)}
+                style={{
+                    backgroundColor: "#ff4d4f",
+                    color: "white",
+                    border: "none",
+                    padding: "8px 15px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: "5px"
+                }}
+            >
+                🗑️ Excluir
+            </button>
+        )}
+    </div>
+
+    {/* GRUPO DIREITA: Ações de Fluxo (Editar/Salvar) */}
+    <div style={{ display: "flex", gap: "10px" }}>
+        {!isEditing ? (
+            <>
+                <button className="btn-secondary" onClick={() => setOsSelecionada(null)}>
+                    Fechar
+                </button>
+                <button 
+                    className="btn-primary" 
+                    onClick={() => {
+                        setEditData(osSelecionada);
+                        setIsEditing(true);
+                    }}
+                >
+                    ✏️ Editar
+                </button>
+            </>
+        ) : (
+            <>
+                <button className="btn-secondary" onClick={() => setIsEditing(false)}>
+                    Cancelar
+                </button>
+                <button className="btn-primary" onClick={handleSaveEdit}>
+                    💾 Salvar
+                </button>
+            </>
+        )}
+    </div>
+</div>
             </div>
         )}
       </Modal>
