@@ -34,7 +34,7 @@ const ImpressaoOS: React.FC = () => {
 
   useEffect(() => {
     // Busca os dados da OS
-    api.get(`/ordens-servico/${id}`)
+    api.get(`/ordensServicos/${id}`)
       .then((response) => {
         setOs(response.data);
         // Pequeno delay para garantir que o DOM renderizou antes de abrir o print
