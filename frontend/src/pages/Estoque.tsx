@@ -20,7 +20,7 @@ const Estoque: React.FC = () => {
     data: ""        // Para datas específicas
   });
 
-  // Estados dos Modais (Visualização/Edição)
+  // Estados dos Modais
   const [osSelecionada, setOsSelecionada] = useState<any | null>(null);
   const [apontamentoSelecionado, setApontamentoSelecionado] = useState<any | null>(null);
   const [produtoSelecionado, setProdutoSelecionado] = useState<any | null>(null);
@@ -51,6 +51,7 @@ const Estoque: React.FC = () => {
       const response = await api.get(endpoint);
       setDados(response.data);
     } catch (error) {
+      // O api.ts já mostra o erro visualmente se falhar a conexão
       console.error(`Erro ao buscar dados:`, error);
       setDados([]);
     } finally {
@@ -64,10 +65,8 @@ const Estoque: React.FC = () => {
 
   // --- LÓGICA DE FILTRAGEM ---
   const dadosFiltrados = dados.filter((item) => {
-    // 1. Filtro por ID (Genérico para todos)
     if (filtros.id && !String(item.id).includes(filtros.id)) return false;
 
-    // 2. Filtros Específicos por Aba
     switch (abaAtiva) {
       case "PRODUTO":
         if (filtros.termo && !item.nome.toLowerCase().includes(filtros.termo.toLowerCase()) && 
@@ -85,7 +84,6 @@ const Estoque: React.FC = () => {
         break;
 
       case "ORDEM_SERVICO":
-        // Filtro por Nome do Cliente ou CNPJ (acessando o objeto cliente aninhado)
         if (filtros.termo) {
             const termo = filtros.termo.toLowerCase();
             const clienteNome = item.cliente?.nome?.toLowerCase() || "";
@@ -97,16 +95,13 @@ const Estoque: React.FC = () => {
         break;
 
       case "APONTAMENTO":
-        // Filtro "Termo" aqui serve para buscar pelo ID da OS vinculada
         if (filtros.termo && !String(item.ordemServicoId).includes(filtros.termo)) return false;
         if (filtros.data && !item.data_apontamento.startsWith(filtros.data)) return false;
         break;
     }
-
     return true;
   });
 
-  // --- LÓGICA DE EDIÇÃO E EXCLUSÃO (MANTIDA) ---
   const abrirModal = (item: any, setModal: React.Dispatch<any>) => {
     setModal(item);
     setEditData(item); 
@@ -118,8 +113,7 @@ const Estoque: React.FC = () => {
     setEditData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  // ... dentro de Estoque.tsx ...
-
+  // --- SALVAR EDIÇÃO (LIMPO) ---
   const handleSaveEdit = async () => {
     try {
       let endpoint = "";
@@ -130,17 +124,15 @@ const Estoque: React.FC = () => {
         "custo_unitario", "valor_unitario", "valor_total",
         "quantidade_utilizada", "quantidade_produzida", "tempo_execucao",
         "ferramentaId", "materiaPrimaId", "usuarioId", "ordemServicoId",
-        "clienteId", "tempo_total_execucao", "quantidade_esperada" // <--- CAMPOS IMPORTANTES
+        "clienteId", "tempo_total_execucao", "quantidade_esperada"
       ];
       
-      // Converte tudo o que for numérico
       numericFields.forEach(field => {
         if(payload[field] !== undefined && payload[field] !== null && payload[field] !== "") {
             payload[field] = Number(payload[field]);
         }
       });
 
-      // Remove campos de data vazios para não dar erro
       if (payload.inicio_trabalho === "") payload.inicio_trabalho = null;
       if (payload.fim_trabalho === "") payload.fim_trabalho = null;
 
@@ -153,20 +145,22 @@ const Estoque: React.FC = () => {
       }
 
       await api.put(endpoint, payload);
-      alert("Atualizado com sucesso!");
+      
+      // SUCESSO!
+      alert("✅ Atualizado com sucesso!");
       setIsEditing(false);
       fetchData(); 
       
-      // Atualiza os modais abertos para refletir a mudança imediata
+      // Atualiza visualmente o modal aberto
       if(osSelecionada && abaAtiva === "ORDEM_SERVICO") setOsSelecionada(payload);
       if(apontamentoSelecionado && abaAtiva === "APONTAMENTO") setApontamentoSelecionado(payload);
 
     } catch (error) {
-      console.error("Erro ao atualizar:", error);
-      alert("Erro ao atualizar o registro.");
+      // NÃO FAZ NADA! O api.ts já mostrou o alerta de erro.
     }
   };
 
+  // --- EXCLUIR (LIMPO) ---
   const handleDelete = async (id: number) => {
     if(!window.confirm("Tem certeza que deseja EXCLUIR este item?")) return;
     try {
@@ -179,11 +173,15 @@ const Estoque: React.FC = () => {
         case "APONTAMENTO": endpoint = `/apontamentos/${id}`; break;
       }
       await api.delete(endpoint);
-      alert("Item excluído.");
-      setProdutoSelecionado(null); setMpSelecionada(null); setFerramentaSelecionada(null); setOsSelecionada(null); setApontamentoSelecionado(null);
+      
+      // SUCESSO!
+      alert("✅ Item excluído.");
+      
+      setProdutoSelecionado(null); setMpSelecionada(null); setFerramentaSelecionada(null); 
+      setOsSelecionada(null); setApontamentoSelecionado(null);
       fetchData();
     } catch (error) {
-      alert("Erro ao excluir.");
+      // NÃO FAZ NADA! O api.ts já mostrou o alerta de erro.
     }
   };
 
@@ -207,77 +205,36 @@ const Estoque: React.FC = () => {
     </div>
   );
 
-  // --- RENDERIZAÇÃO DA BARRA DE FILTROS ---
   const renderFiltros = () => {
     if (!mostrarFiltros) return null;
-
     return (
       <div style={{ background: "#f1f1f1", padding: "15px", marginBottom: "20px", borderRadius: "4px", border: "1px solid #ddd", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-end" }}>
-        
-        {/* Filtro ID (Comum a todos) */}
         <div style={{ display: "flex", flexDirection: "column" }}>
             <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>ID / CÓDIGO</label>
-            <input 
-                type="text" 
-                placeholder="Ex: 5" 
-                value={filtros.id}
-                onChange={(e) => setFiltros({ ...filtros, id: e.target.value })}
-                style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "80px" }}
-            />
+            <input type="text" placeholder="Ex: 5" value={filtros.id} onChange={(e) => setFiltros({ ...filtros, id: e.target.value })} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "80px" }} />
         </div>
-
-        {/* Filtro Texto (Nome, Modelo, Cliente) - Variável */}
         {(abaAtiva !== "APONTAMENTO") && (
             <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-                <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>
-                    {abaAtiva === "ORDEM_SERVICO" ? "CLIENTE / CNPJ" : "NOME / MODELO"}
-                </label>
-                <input 
-                    type="text" 
-                    placeholder="Pesquisar..." 
-                    value={filtros.termo}
-                    onChange={(e) => setFiltros({ ...filtros, termo: e.target.value })}
-                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
-                />
+                <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>{abaAtiva === "ORDEM_SERVICO" ? "CLIENTE / CNPJ" : "NOME / MODELO"}</label>
+                <input type="text" placeholder="Pesquisar..." value={filtros.termo} onChange={(e) => setFiltros({ ...filtros, termo: e.target.value })} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }} />
             </div>
         )}
-
-        {/* Filtro Específico Apontamento */}
         {abaAtiva === "APONTAMENTO" && (
              <div style={{ display: "flex", flexDirection: "column" }}>
                 <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>ID DA OS</label>
-                <input 
-                    type="text" 
-                    placeholder="OS ID" 
-                    value={filtros.termo}
-                    onChange={(e) => setFiltros({ ...filtros, termo: e.target.value })}
-                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-                />
+                <input type="text" placeholder="OS ID" value={filtros.termo} onChange={(e) => setFiltros({ ...filtros, termo: e.target.value })} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }} />
             </div>
         )}
-
-        {/* Filtro Data (OS e Apontamento) */}
         {(abaAtiva === "ORDEM_SERVICO" || abaAtiva === "APONTAMENTO") && (
             <div style={{ display: "flex", flexDirection: "column" }}>
                 <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>DATA</label>
-                <input 
-                    type="date" 
-                    value={filtros.data}
-                    onChange={(e) => setFiltros({ ...filtros, data: e.target.value })}
-                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-                />
+                <input type="date" value={filtros.data} onChange={(e) => setFiltros({ ...filtros, data: e.target.value })} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }} />
             </div>
         )}
-
-        {/* Filtro Status (OS e Ferramenta) */}
         {(abaAtiva === "ORDEM_SERVICO" || abaAtiva === "FERRAMENTA") && (
             <div style={{ display: "flex", flexDirection: "column" }}>
                 <label style={{ fontSize: "0.8rem", fontWeight: "bold", marginBottom: "3px" }}>STATUS</label>
-                <select 
-                    value={filtros.status}
-                    onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}
-                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
-                >
+                <select value={filtros.status} onChange={(e) => setFiltros({ ...filtros, status: e.target.value })} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}>
                     <option value="TODOS">Todos</option>
                     <option value="ATIVO">Ativo</option>
                     <option value="INATIVO">Inativo</option>
@@ -292,13 +249,7 @@ const Estoque: React.FC = () => {
                 </select>
             </div>
         )}
-
-        <button 
-            onClick={() => setFiltros({ termo: "", id: "", status: "TODOS", data: "" })}
-            style={{ padding: "8px 15px", background: "#eee", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer", height: "35px" }}
-        >
-            Limpar
-        </button>
+        <button onClick={() => setFiltros({ termo: "", id: "", status: "TODOS", data: "" })} style={{ padding: "8px 15px", background: "#eee", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer", height: "35px" }}>Limpar</button>
       </div>
     );
   };
@@ -322,36 +273,11 @@ const Estoque: React.FC = () => {
     });
 
     switch (abaAtiva) {
-      case "MATERIA_PRIMA":
-        return (
-          <tr {...rowProps(setMpSelecionada)}>
-            <td>MP-{item.id}</td><td>{item.nome}</td><td>{item.quantidade_disponivel} {item.unidade_medida}</td><td>{item.fornecedorId}</td><td>{item.ultima_entrada ? new Date(item.ultima_entrada).toLocaleDateString() : "-"}</td>
-          </tr>
-        );
-      case "PRODUTO":
-        return (
-          <tr {...rowProps(setProdutoSelecionado)}>
-            <td>PI-{item.id}</td><td>{item.nome}</td><td>{item.modelo || "-"}</td><td>{item.quantidade_estoque} {item.unidade}</td><td>R$ {Number(item.preco_unitario).toFixed(2)}</td>
-          </tr>
-        );
-      case "ORDEM_SERVICO":
-        return (
-          <tr {...rowProps(setOsSelecionada)}>
-            <td>OS-{item.id}</td><td>{item.cliente?.nome || item.clienteId}</td><td>{new Date(item.data_abertura).toLocaleDateString()}</td><td>{item.cliente?.cpf_cnpj || "-"}</td><td><span className={`status-badge ${item.status}`}>{item.status}</span></td>
-          </tr>
-        );
-      case "APONTAMENTO":
-        return (
-          <tr {...rowProps(setApontamentoSelecionado)}>
-            <td>AP-{item.id}</td><td>OS-{item.ordemServicoId}</td><td>{new Date(item.data_apontamento).toLocaleDateString()}</td><td>{item.tempo_execucao} min</td><td>TOR-{item.usuarioId}</td>
-          </tr>
-        );
-      case "FERRAMENTA":
-        return (
-          <tr {...rowProps(setFerramentaSelecionada)}>
-            <td>FER-{item.id}</td><td>{item.nome}</td><td>{item.tipo}</td><td>{item.quantidade_disponivel}</td><td><span className={`status-badge ${item.status}`}>{item.status}</span></td>
-          </tr>
-        );
+      case "MATERIA_PRIMA": return (<tr {...rowProps(setMpSelecionada)}><td>MP-{item.id}</td><td>{item.nome}</td><td>{item.quantidade_disponivel} {item.unidade_medida}</td><td>{item.fornecedorId}</td><td>{item.ultima_entrada ? new Date(item.ultima_entrada).toLocaleDateString() : "-"}</td></tr>);
+      case "PRODUTO": return (<tr {...rowProps(setProdutoSelecionado)}><td>PI-{item.id}</td><td>{item.nome}</td><td>{item.modelo || "-"}</td><td>{item.quantidade_estoque} {item.unidade}</td><td>R$ {Number(item.preco_unitario).toFixed(2)}</td></tr>);
+      case "ORDEM_SERVICO": return (<tr {...rowProps(setOsSelecionada)}><td>OS-{item.id}</td><td>{item.cliente?.nome || item.clienteId}</td><td>{new Date(item.data_abertura).toLocaleDateString()}</td><td>{item.cliente?.cpf_cnpj || "-"}</td><td><span className={`status-badge ${item.status}`}>{item.status}</span></td></tr>);
+      case "APONTAMENTO": return (<tr {...rowProps(setApontamentoSelecionado)}><td>AP-{item.id}</td><td>OS-{item.ordemServicoId}</td><td>{new Date(item.data_apontamento).toLocaleDateString()}</td><td>{item.tempo_execucao} min</td><td>TOR-{item.usuarioId}</td></tr>);
+      case "FERRAMENTA": return (<tr {...rowProps(setFerramentaSelecionada)}><td>FER-{item.id}</td><td>{item.nome}</td><td>{item.tipo}</td><td>{item.quantidade_disponivel}</td><td><span className={`status-badge ${item.status}`}>{item.status}</span></td></tr>);
     }
   };
 
@@ -365,16 +291,9 @@ const Estoque: React.FC = () => {
           <button onClick={() => setAbaAtiva("ORDEM_SERVICO")} className={abaAtiva === "ORDEM_SERVICO" ? "selected" : ""}>Ordem de Serviço</button>
           <button onClick={() => setAbaAtiva("APONTAMENTO")} className={abaAtiva === "APONTAMENTO" ? "selected" : ""}>Apontamento</button>
         </div>
-        <div 
-            className="filter-icon" 
-            onClick={() => setMostrarFiltros(!mostrarFiltros)}
-            style={{ background: mostrarFiltros ? "#e0e0e0" : "white" }}
-        >
-            🔍 Filtro {mostrarFiltros ? "▲" : "▼"}
-        </div>
+        <div className="filter-icon" onClick={() => setMostrarFiltros(!mostrarFiltros)} style={{ background: mostrarFiltros ? "#e0e0e0" : "white" }}>🔍 Filtro {mostrarFiltros ? "▲" : "▼"}</div>
       </div>
 
-      {/* RENDERIZA OS FILTROS AQUI */}
       {renderFiltros()}
 
       <div className="table-container">
@@ -388,7 +307,6 @@ const Estoque: React.FC = () => {
         </table>
       </div>
 
-      {/* --- MODAIS COM EDIÇÃO --- */}
       {/* 1. Modal Produto */}
       <Modal isOpen={!!produtoSelecionado} onClose={() => setProdutoSelecionado(null)} title={`Detalhes do Produto #PI-${produtoSelecionado?.id}`}>
         {produtoSelecionado && (
@@ -487,12 +405,11 @@ const Estoque: React.FC = () => {
         )}
       </Modal>
 
-      {/* 4. Modal Apontamento */}
+      {/* 4. Modal Apontamento (COM NOVOS CAMPOS E EDIÇÃO) */}
       <Modal isOpen={!!apontamentoSelecionado} onClose={() => setApontamentoSelecionado(null)} title={`Apontamento #AP-${apontamentoSelecionado?.id}`}>
         {apontamentoSelecionado && (
             <div className="os-details-view modal-form">
                 {!isEditing ? (
-                    // --- MODO VISUALIZAÇÃO ---
                     <>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
                             <p><strong>OS ID:</strong> {apontamentoSelecionado.ordemServicoId}</p>
@@ -501,7 +418,6 @@ const Estoque: React.FC = () => {
                             <p><strong>Fim:</strong> {apontamentoSelecionado.fim_trabalho ? new Date(apontamentoSelecionado.fim_trabalho).toLocaleString() : "-"}</p>
                             <p><strong>Tempo Total:</strong> {apontamentoSelecionado.tempo_execucao} min</p>
                         </div>
-                        
                          <div style={{ marginTop: "15px", padding: "10px", background: "#f8f9fa", borderRadius: "4px", border: "1px solid #ddd" }}>
                             <h4 style={{ fontSize: "0.9rem", color: "#333", marginBottom: "10px" }}>Recursos e Produção</h4>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
@@ -514,7 +430,6 @@ const Estoque: React.FC = () => {
                         <div style={{marginTop: "10px"}}><strong>Obs:</strong> {apontamentoSelecionado.observacao}</div>
                     </>
                 ) : (
-                    // --- MODO EDIÇÃO (AGORA COM OS CAMPOS QUE FALTAVAM) ---
                     <>
                         <div className="form-row">
                             <div className="form-group">
@@ -526,13 +441,10 @@ const Estoque: React.FC = () => {
                                 <input type="datetime-local" name="fim_trabalho" value={editData.fim_trabalho ? new Date(editData.fim_trabalho).toISOString().slice(0, 16) : ""} onChange={handleEditChange} />
                             </div>
                         </div>
-                        
                         <div className="form-row">
                              <div className="form-group"><label>Tempo (min)</label><input type="number" name="tempo_execucao" value={editData.tempo_execucao} onChange={handleEditChange} /></div>
                              <div className="form-group"><label>Data Reg.</label><input type="date" name="data_apontamento" value={editData.data_apontamento ? new Date(editData.data_apontamento).toISOString().split('T')[0] : ""} onChange={handleEditChange} /></div>
                         </div>
-
-                        {/* --- CAMPOS DE RECURSOS (ADICIONADOS) --- */}
                         <div style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd", margin: "10px 0" }}>
                             <div className="form-row">
                                 <div className="form-group">
@@ -555,7 +467,6 @@ const Estoque: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-
                         <div className="form-group"><label>Observação</label><textarea name="observacao" value={editData.observacao || ""} onChange={handleEditChange} rows={2} /></div>
                     </>
                 )}
@@ -564,14 +475,12 @@ const Estoque: React.FC = () => {
         )}
       </Modal>
 
-      {/* 5. Modal OS */}
+      {/* 5. Modal OS (COM LISTA SEPARADA) */}
       <Modal isOpen={!!osSelecionada} onClose={() => setOsSelecionada(null)} title={`OS #${osSelecionada?.id}`}>
         {osSelecionada && (
             <div className="os-details-view modal-form">
                 {!isEditing ? (
-                    // --- MODO VISUALIZAÇÃO ---
                     <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                        {/* 1. Cabeçalho */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
                             <p><strong>Cliente:</strong> {osSelecionada.cliente?.nome || osSelecionada.clienteId}</p>
                             <p><strong>Equipamento:</strong> {osSelecionada.equipamento_utilizado || "-"}</p>
@@ -579,7 +488,7 @@ const Estoque: React.FC = () => {
                             <p><strong>Valor Total:</strong> R$ {Number(osSelecionada.valor_total || 0).toFixed(2)}</p>
                         </div>
 
-                        {/* 2. Barra de Progresso (Meta) */}
+                        {/* Barra de Progresso (Meta) */}
                         {(() => {
                             const totalProduzido = osSelecionada.apontamentosOrdemServico?.reduce((acc: number, ap: any) => acc + (ap.quantidade_produzida || 0), 0) || 0;
                             const meta = osSelecionada.quantidade_esperada || 0;
@@ -600,7 +509,6 @@ const Estoque: React.FC = () => {
                             );
                         })()}
 
-                        {/* 3. Resumo de Tempo */}
                         <div style={{ background: "#e6f7ff", padding: "10px", borderRadius: "4px", border: "1px solid #91d5ff" }}>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", fontSize: "0.85rem" }}>
                                 <div><strong>Início Geral:</strong><br/> {osSelecionada.inicio_servico ? new Date(osSelecionada.inicio_servico).toLocaleString() : "-"}</div>
@@ -609,7 +517,7 @@ const Estoque: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* 4. LISTA SEPARADA DE APONTAMENTOS */}
+                        {/* LISTA SEPARADA DE APONTAMENTOS */}
                         <div>
                             <h4 style={{ margin: "0 0 5px 0", fontSize: "0.9rem", borderBottom: "1px solid #eee", paddingBottom: "5px" }}>🔨 Histórico Detalhado</h4>
                             {osSelecionada.apontamentosOrdemServico && osSelecionada.apontamentosOrdemServico.length > 0 ? (
@@ -639,24 +547,13 @@ const Estoque: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    // --- MODO EDIÇÃO COMPLETO (TODOS OS CAMPOS) ---
                     <>
                         <div className="form-row">
-                             <div className="form-group">
-                                <label>Meta Produção (Qtd)</label>
-                                <input type="number" name="quantidade_esperada" value={editData.quantidade_esperada || 0} onChange={handleEditChange} />
-                            </div>
-                             <div className="form-group">
-                                <label>Equipamento</label>
-                                <input name="equipamento_utilizado" value={editData.equipamento_utilizado || ""} onChange={handleEditChange} />
-                            </div>
+                             <div className="form-group"><label>Meta Produção (Qtd)</label><input type="number" name="quantidade_esperada" value={editData.quantidade_esperada || 0} onChange={handleEditChange} /></div>
+                             <div className="form-group"><label>Equipamento</label><input name="equipamento_utilizado" value={editData.equipamento_utilizado || ""} onChange={handleEditChange} /></div>
                         </div>
-
                         <div className="form-row">
-                            <div className="form-group">
-                                <label>Valor Total (R$)</label>
-                                <input type="number" name="valor_total" value={editData.valor_total} onChange={handleEditChange} />
-                            </div>
+                            <div className="form-group"><label>Valor Total (R$)</label><input type="number" name="valor_total" value={editData.valor_total} onChange={handleEditChange} /></div>
                             <div className="form-group">
                                 <label>Status</label>
                                 <select name="status" value={editData.status} onChange={handleEditChange}>
@@ -667,37 +564,12 @@ const Estoque: React.FC = () => {
                                 </select>
                             </div>
                         </div>
-
                         <div className="form-row">
-                            <div className="form-group">
-                                <label>Data de Emissão</label>
-                                <input 
-                                    type="date" 
-                                    name="data_abertura" 
-                                    value={editData.data_abertura ? new Date(editData.data_abertura).toISOString().split('T')[0] : ""} 
-                                    onChange={handleEditChange} 
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Prazo de Entrega</label>
-                                <input 
-                                    type="date" 
-                                    name="data_fechamento" 
-                                    value={editData.data_fechamento ? new Date(editData.data_fechamento).toISOString().split('T')[0] : ""} 
-                                    onChange={handleEditChange} 
-                                />
-                            </div>
+                            <div className="form-group"><label>Data de Emissão</label><input type="date" name="data_abertura" value={editData.data_abertura ? new Date(editData.data_abertura).toISOString().split('T')[0] : ""} onChange={handleEditChange} /></div>
+                            <div className="form-group"><label>Prazo de Entrega</label><input type="date" name="data_fechamento" value={editData.data_fechamento ? new Date(editData.data_fechamento).toISOString().split('T')[0] : ""} onChange={handleEditChange} /></div>
                         </div>
-
-                        <div className="form-group">
-                            <label>Descrição do Serviço</label>
-                            <textarea name="descricao_servico" rows={3} value={editData.descricao_servico} onChange={handleEditChange} />
-                        </div>
-                        
-                         <div className="form-group">
-                            <label>Observação</label>
-                            <textarea name="observacao" rows={2} value={editData.observacao || ""} onChange={handleEditChange} />
-                        </div>
+                        <div className="form-group"><label>Descrição do Serviço</label><textarea name="descricao_servico" rows={3} value={editData.descricao_servico} onChange={handleEditChange} /></div>
+                         <div className="form-group"><label>Observação</label><textarea name="observacao" rows={2} value={editData.observacao || ""} onChange={handleEditChange} /></div>
                     </>
                 )}
                 <ModalActions id={osSelecionada.id} />

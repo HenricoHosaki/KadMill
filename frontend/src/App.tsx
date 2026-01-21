@@ -8,7 +8,6 @@ e é renderizado dentro do main.tsx (que já vimos antes).*/
 
 import React from "react";
 import AppRouter from "./routes/AppRouter";
-import { useState } from 'react'
 import './App.css'
 
 const App: React.FC = () => {

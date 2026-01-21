@@ -1,24 +1,58 @@
 /* O api.ts serve para centralizar toda a comunicação entre o frontend e o backend.
-Em vez de chamar o axios diretamente em cada componente, você cria uma instância configurada e usa ela em todo o projeto.
-Assim, se um dia você mudar a URL da API, ou quiser adicionar autenticação, logging, etc.,
-você altera apenas esse arquivo — o resto do código continua igual.
-Ele cuida do endereço, formato, e segurança (token) de todas as chamadas à API. */
+Ele cuida do endereço, formato, segurança (token) e AGORA TAMBÉM dos erros globais. */
 
-import axios from "axios"; //cuida das requisições HTTP
+import axios from "axios"; 
 
 const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 export const api = axios.create({
-  baseURL, //endereço base do backend
+  baseURL, 
   headers: {
-    "Content-Type": "application/json", //todos os dados enviados e recebidos serão em JSON
+    "Content-Type": "application/json", 
   },
 });
 
+// 1. INTERCEPTOR DE REQUISIÇÃO (Envia o Token)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("kadmill:token"); //pega o token de autenticação do armazenamento local
-  if (token && config.headers) { //adiciona o token de autenticação em cada requisição, se existir
-    config.headers.Authorization = `Bearer ${token}`; //padrão Bearer token
+  const token = localStorage.getItem("kadmill:token"); 
+  if (token && config.headers) { 
+    config.headers.Authorization = `Bearer ${token}`; 
   }
   return config;
 });
+
+// 2. INTERCEPTOR DE RESPOSTA (Trata os Erros Sozinho)
+api.interceptors.response.use(
+  (response) => {
+    // Se a requisição funcionou, deixa passar os dados
+    return response;
+  },
+  (error) => {
+    // Se deu erro, entra aqui AUTOMATICAMENTE
+    let mensagem = "Ocorreu um erro inesperado.";
+
+    // Tenta pegar a mensagem explicativa que o Backend mandou (ex: "Estoque insuficiente")
+    if (error.response?.data?.message) {
+      mensagem = error.response.data.message;
+    } else if (error.response?.data?.error) {
+      mensagem = error.response.data.error;
+    } else if (error.message) {
+      mensagem = error.message;
+    }
+
+    // --- FILTRO DE LIMPEZA (Remove "localhost" e erros técnicos) ---
+    if (mensagem.toLowerCase().includes("network error")) {
+      mensagem = "Sem conexão com o servidor. Verifique se o backend está rodando.";
+    }
+    if (mensagem.includes("localhost") || mensagem.includes("127.0.0.1") || mensagem.includes("refused")) {
+      mensagem = "Falha de comunicação interna com o servidor.";
+    }
+
+    // --- VISUALIZADOR DE ERRO (Alerta Nativo) ---
+    // Mostra o erro na tela para o usuário, já limpo
+    alert(`❌ ERRO: ${mensagem}`);
+
+    // Rejeita a promessa para que o seu botão de "Salvar" saiba que falhou e não feche o modal
+    return Promise.reject(error);
+  }
+);
