@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../services/api";
-import logo from "../assets/Logo_Kadmill.png"; // Importando o logo existente
+import logo from "../assets/Logo_Kadmill.png";
+import { isAdmin } from "../utils/authUtils";
 
 // Tipagem simplificada baseada no seu Schema
 interface OSData {
@@ -172,17 +173,30 @@ const ImpressaoOS: React.FC = () => {
         </>
       )}
 
-      {/* TOTAIS */}
+      {/* --- 2. ALTERAÇÃO AQUI: Bloco de Fechamento/Valor --- */}
       <div className="section-title">Fechamento</div>
       <div className="row" style={{ alignItems: "center", justifyContent: "flex-end", marginTop: "20px" }}>
         <div style={{ marginRight: "40px", textAlign: "right" }}>
             <span className="label">Tempo Total (Min):</span>
             <span className="value" style={{ fontSize: "16px" }}>{os.tempo_total_execucao || 0} min</span>
         </div>
-        <div style={{ textAlign: "right", background: "#f0f0f0", padding: "10px", borderRadius: "4px" }}>
-            <span className="label">VALOR TOTAL:</span>
-            <span className="value" style={{ fontSize: "20px", fontWeight: "bold" }}>{formatMoney(os.valor_total)}</span>
-        </div>
+        
+        {/* SÓ MOSTRA O VALOR SE FOR ADMIN */}
+        {isAdmin() ? (
+            <div style={{ textAlign: "right", background: "#f0f0f0", padding: "10px", borderRadius: "4px" }}>
+                <span className="label">VALOR TOTAL:</span>
+                <span className="value" style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {formatMoney(os.valor_total)}
+                </span>
+            </div>
+        ) : (
+            <div style={{ textAlign: "right", padding: "10px" }}>
+                <span className="label">VALOR TOTAL:</span>
+                <span className="value" style={{ fontSize: "16px", fontStyle: "italic", color: "#666" }}>
+                0
+                </span>
+            </div>
+        )}
       </div>
 
       {/* ASSINATURAS */}
