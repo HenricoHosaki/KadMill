@@ -188,16 +188,15 @@ const ImpressaoOS: React.FC = () => {
       {/* ASSINATURAS */}
       <div className="assinaturas">
         <div className="assinatura-line">
-            Responsável Kadmill
+            Responsável
         </div>
         <div className="assinatura-line">
-            Cliente: {os.cliente.nome}
+            Cliente
         </div>
       </div>
 
       <div className="footer">
-        <p>Kadmill Usinagem - Sistema de Controle Interno</p>
-        <p>Gerado em: {new Date().toLocaleString('pt-BR')}</p>
+        <p>LR Usinagem</p>
       </div>
 
       {/* Botão apenas para tela, caso o print automático falhe */}
