@@ -22,14 +22,6 @@ interface Apontamento {
   ordemServicoId: number;
 }
 
-interface LogSistema {
-  id: number;
-  data: string;
-  acao: string;
-  usuario: string;
-  detalhes: string;
-}
-
 const Admin: React.FC = () => {
   // Estados de Navegação
   const [abaAtiva, setAbaAtiva] = useState("DASHBOARD");
@@ -38,7 +30,6 @@ const Admin: React.FC = () => {
   // Estados de Dados
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [apontamentos, setApontamentos] = useState<Apontamento[]>([]);
-  const [logs, setLogs] = useState<LogSistema[]>([]);
 
   // Estados do Dashboard
   const [dataFiltro, setDataFiltro] = useState(new Date().toISOString().split('T')[0]);
@@ -52,15 +43,13 @@ const Admin: React.FC = () => {
   const fetchDados = async () => {
     setLoading(true);
     try {
-      const [resUsers, resApont, resLogs] = await Promise.all([
+      const [resUsers, resApont] = await Promise.all([
         api.get("/administradores"), // Rota de usuários
         api.get("/apontamentos"),
-        api.get("/logs").catch(() => ({ data: [] })) // Fallback se não houver rota de logs
       ]);
       
       setUsuarios(resUsers.data || []);
       setApontamentos(resApont.data || []);
-      setLogs(resLogs.data || []);
 
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -322,24 +311,6 @@ const Admin: React.FC = () => {
                     </button>
                 </div>
 
-                <h4 style={{ color: "#555", marginBottom: "10px" }}>Histórico de Atividades (Logs)</h4>
-                <div style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid #eee", borderRadius: "4px" }}>
-                    <table className="kadmill-table" style={{ width: "100%", margin: 0 }}>
-                        <thead style={{ position: "sticky", top: 0, background: "white", zIndex: 1 }}>
-                            <tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Detalhes</th></tr>
-                        </thead>
-                        <tbody>
-                            {logs.length > 0 ? logs.map(log => (
-                                <tr key={log.id}>
-                                    <td>{new Date(log.data).toLocaleString()}</td>
-                                    <td>{log.usuario}</td>
-                                    <td><strong>{log.acao}</strong></td>
-                                    <td>{log.detalhes}</td>
-                                </tr>
-                            )) : <tr><td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>Sem logs registrados.</td></tr>}
-                        </tbody>
-                    </table>
-                </div>
             </div>
           )}
         </>
