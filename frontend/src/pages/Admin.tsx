@@ -161,15 +161,43 @@ const Admin: React.FC = () => {
     }
   };
 
-  // --- LÓGICA DE SISTEMA (BACKUP) ---
+  // --- LÓGICA DE SISTEMA (BACKUP REAL) ---
   const handleBackup = async () => {
     try {
-        // Tenta chamar uma rota de backup se existir, ou apenas alerta
-        // await api.get('/backup'); 
-        alert("Solicitação de Backup enviada! O download iniciará em breve (Simulado).");
-        // window.open('http://localhost:3333/backup', '_blank'); // Exemplo real
+        // Feedback visual imediato
+        alert("Iniciando download do backup... Isso pode levar alguns segundos.");
+        
+        // Faz a requisição pedindo um BLOB (arquivo)
+        // OBS: Certifique-se que sua rota no backend é '/administradores/backup'
+        const response = await api.get('/administradores/backup', {
+            responseType: 'blob', 
+        });
+
+        // Cria um link temporário para forçar o download no navegador
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Tenta pegar o nome do arquivo enviado pelo servidor ou define um padrão
+        const contentDisposition = response.headers['content-disposition'];
+        let fileName = `backup_kadmill_${new Date().toISOString().split('T')[0]}.sql`;
+        
+        if (contentDisposition) {
+            const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
+            if (fileNameMatch && fileNameMatch.length === 2) fileName = fileNameMatch[1];
+        }
+        
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpeza do link temporário
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
     } catch (error) {
-        alert("Erro ao gerar backup.");
+        console.error("Erro no backup:", error);
+        alert("Erro ao baixar o backup. Verifique se o servidor backend está online e com o 'pg_dump' instalado.");
     }
   };
 
@@ -280,7 +308,7 @@ const Admin: React.FC = () => {
             </div>
           )}
 
-          {/* --- ABA SISTEMA (BACKUP & LOGS) --- */}
+          {/* --- ABA SISTEMA (BACKUP REAL) --- */}
           {abaAtiva === "SISTEMA" && (
             <div className="card-box">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", paddingBottom: "15px", borderBottom: "1px solid #eee" }}>
@@ -288,6 +316,7 @@ const Admin: React.FC = () => {
                         <h3 className="card-title">Manutenção do Sistema</h3>
                         <p style={{ color: "#777", fontSize: "0.9rem", margin: "5px 0" }}>Logs de atividade e cópia de segurança.</p>
                     </div>
+                    {/* Botão de Backup Atualizado */}
                     <button onClick={handleBackup} style={{ background: "#52c41a", color: "white", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
                         💾 Fazer Backup Completo
                     </button>
