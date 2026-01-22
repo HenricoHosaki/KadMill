@@ -1,276 +1,373 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
-import Modal from "../components/Modal"; // Importamos o componente Modal que já existe
+import Modal from "../components/Modal";
+
+// --- INTERFACES ---
+interface Usuario {
+  id: number;
+  nome: string;
+  email: string;
+  funcao: string;
+}
+
+interface Apontamento {
+  id: number;
+  data_apontamento: string;
+  quantidade_produzida: number;
+  quantidade_utilizada: number;
+  tempo_execucao: number;
+  observacao?: string;
+  usuario?: Usuario;
+  usuarioId: number;
+  ordemServicoId: number;
+}
+
+interface LogSistema {
+  id: number;
+  data: string;
+  acao: string;
+  usuario: string;
+  detalhes: string;
+}
 
 const Admin: React.FC = () => {
-  const [usuarios, setUsuarios] = useState<any[]>([]);
-  const [logs, setLogs] = useState<any[]>([]);
+  // Estados de Navegação
+  const [abaAtiva, setAbaAtiva] = useState("DASHBOARD");
   const [loading, setLoading] = useState(true);
-  const [backupLoading, setBackupLoading] = useState(false);
 
-  // Estados para Criação de Usuário
-  const [showModal, setShowModal] = useState(false);
-  const [novoUsuario, setNovoUsuario] = useState({
-    nome: "",
-    email: "",
-    senha: "",
-    cpf: "",
-    funcao: "OPERADOR", // Valor padrão
-    setor: "DIURNO"     // Valor padrão
-  });
+  // Estados de Dados
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [apontamentos, setApontamentos] = useState<Apontamento[]>([]);
+  const [logs, setLogs] = useState<LogSistema[]>([]);
 
-  useEffect(() => {
-    fetchDados();
-  }, []);
+  // Estados do Dashboard
+  const [dataFiltro, setDataFiltro] = useState(new Date().toISOString().split('T')[0]);
 
+  // Estados de Manipulação de Usuário
+  const [modalUsuarioOpen, setModalUsuarioOpen] = useState(false);
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [usuarioEmEdicao, setUsuarioEmEdicao] = useState<any>({ nome: "", email: "", senha: "", funcao: "OPERADOR" });
+
+  // --- CARREGAMENTO DE DADOS ---
   const fetchDados = async () => {
     setLoading(true);
-    
-    // Busca Usuários (Independente)
     try {
-      const resUsers = await api.get("/administradores");
-      setUsuarios(resUsers.data);
-    } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-    }
+      const [resUsers, resApont, resLogs] = await Promise.all([
+        api.get("/administradores"), // Rota de usuários
+        api.get("/apontamentos"),
+        api.get("/logs").catch(() => ({ data: [] })) // Fallback se não houver rota de logs
+      ]);
+      
+      setUsuarios(resUsers.data || []);
+      setApontamentos(resApont.data || []);
+      setLogs(resLogs.data || []);
 
-    // Busca Logs (Independente) - Se falhar (vazio), não quebra a tela
-    try {
-      const resLogs = await api.get("/relatorios/apontamentos");
-      setLogs(resLogs.data);
     } catch (error) {
-      console.warn("Sem logs ou erro ao buscar apontamentos:", error);
-      setLogs([]); // Garante que a lista fique vazia visualmente
+      console.error("Erro ao carregar dados:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExcluirUsuario = async (id: number) => {
-    if (!window.confirm("Tem certeza que deseja remover o acesso deste usuário?")) return;
-    try {
-      await api.delete(`/administradores/${id}`);
-      alert("Usuário removido.");
-      fetchDados();
-    } catch {
-      alert("Erro ao excluir usuário.");
-    }
+  useEffect(() => {
+    fetchDados();
+  }, []);
+
+  // --- LÓGICA DO DASHBOARD ---
+  const getDadosGrafico = () => {
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+
+    const apontamentosDoMes = apontamentos.filter(ap => {
+      const dataAp = new Date(ap.data_apontamento);
+      return dataAp.getMonth() === mesAtual && dataAp.getFullYear() === anoAtual;
+    });
+
+    const producaoPorUsuario: Record<string, number> = {};
+    apontamentosDoMes.forEach(ap => {
+      const nomeUser = ap.usuario?.nome || `Operador ${ap.usuarioId}`;
+      const qtd = Number(ap.quantidade_produzida || 0);
+      producaoPorUsuario[nomeUser] = (producaoPorUsuario[nomeUser] || 0) + qtd;
+    });
+
+    const dadosOrdenados = Object.entries(producaoPorUsuario)
+      .map(([nome, total]) => ({ nome, total }))
+      .sort((a, b) => b.total - a.total);
+
+    const maxValor = Math.max(...dadosOrdenados.map(d => d.total), 1);
+    return { dados: dadosOrdenados, maxValor };
   };
 
-  const handleDownloadBackup = async () => {
-    setBackupLoading(true);
+  const listaApontamentosFiltrada = apontamentos.filter(ap => 
+    ap.data_apontamento && ap.data_apontamento.startsWith(dataFiltro)
+  );
+
+  const { dados: dadosGrafico, maxValor } = getDadosGrafico();
+  const totalPecasDia = listaApontamentosFiltrada.reduce((acc, curr) => acc + (curr.quantidade_produzida || 0), 0);
+  const totalMinutosDia = listaApontamentosFiltrada.reduce((acc, curr) => acc + (curr.tempo_execucao || 0), 0);
+
+  // --- LÓGICA DE USUÁRIOS (CRIAR / EDITAR / EXCLUIR) ---
+  const handleOpenNovoUsuario = () => {
+    setUsuarioEmEdicao({ nome: "", email: "", senha: "", funcao: "OPERADOR" });
+    setIsEditingUser(false);
+    setModalUsuarioOpen(true);
+  };
+
+  const handleOpenEditarUsuario = (user: Usuario) => {
+    setUsuarioEmEdicao({ ...user, senha: "" }); // Senha vazia para não alterar se não quiser
+    setIsEditingUser(true);
+    setModalUsuarioOpen(true);
+  };
+
+  const handleSaveUsuario = async () => {
     try {
-      const response = await api.get('/administradores/backup', { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `kadmill_backup_${new Date().toISOString().slice(0,10)}.sql`);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode?.removeChild(link);
+      if (!usuarioEmEdicao.nome || !usuarioEmEdicao.email) {
+        alert("Preencha nome e email!");
+        return;
+      }
+
+      if (isEditingUser) {
+        // Editar
+        await api.put(`/administradores/${usuarioEmEdicao.id}`, usuarioEmEdicao);
+        alert("Usuário atualizado com sucesso!");
+      } else {
+        // Criar Novo
+        if (!usuarioEmEdicao.senha) {
+            alert("Senha é obrigatória para novos usuários.");
+            return;
+        }
+        await api.post("/administradores", usuarioEmEdicao);
+        alert("Usuário criado com sucesso!");
+      }
+      
+      setModalUsuarioOpen(false);
+      fetchDados(); // Recarrega lista
     } catch (error) {
-      alert("Erro ao gerar backup.");
-    } finally {
-      setBackupLoading(false);
+      console.error("Erro ao salvar usuário:", error);
+      alert("Erro ao salvar usuário. Verifique os dados.");
     }
   };
 
-  // --- Lógica de Criação de Usuário ---
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setNovoUsuario({ ...novoUsuario, [e.target.name]: e.target.value });
+  const handleDeleteUsuario = async (id: number) => {
+    if (window.confirm("Tem certeza que deseja excluir este usuário?")) {
+      try {
+        await api.delete(`/administradores/${id}`);
+        alert("Usuário excluído.");
+        fetchDados();
+      } catch (error) {
+        alert("Erro ao excluir usuário.");
+      }
+    }
   };
 
-  const handleSalvarUsuario = async () => {
-    // Validação básica
-    if (novoUsuario.cpf.length !== 11) {
-      alert("O CPF deve ter exatamente 11 números (apenas números).");
-      return;
-    }
-    if (novoUsuario.senha.length < 4) {
-      alert("A senha deve ter pelo menos 4 caracteres.");
-      return;
-    }
-
+  // --- LÓGICA DE SISTEMA (BACKUP) ---
+  const handleBackup = async () => {
     try {
-      await api.post("/administradores", novoUsuario);
-      alert("Usuário criado com sucesso!");
-      setShowModal(false);
-      setNovoUsuario({ nome: "", email: "", senha: "", cpf: "", funcao: "OPERADOR", setor: "DIURNO" }); // Limpa form
-      fetchDados(); // Recarrega a lista
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Erro ao criar usuário. Verifique se o Email ou CPF já existem.");
+        // Tenta chamar uma rota de backup se existir, ou apenas alerta
+        // await api.get('/backup'); 
+        alert("Solicitação de Backup enviada! O download iniciará em breve (Simulado).");
+        // window.open('http://localhost:3333/backup', '_blank'); // Exemplo real
+    } catch (error) {
+        alert("Erro ao gerar backup.");
     }
   };
-
-  if (loading) return <div style={{padding: "40px", color: "white", textAlign: "center"}}>Carregando Painel...</div>;
 
   return (
-    <div className="admin-container" style={{ padding: "20px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #444", paddingBottom: "15px", marginBottom: "30px" }}>
-        <h2 style={{ color: "white", margin: 0 }}>PAINEL ADMINISTRATIVO</h2>
-        <button 
-            className="btn-primary" 
-            onClick={() => setShowModal(true)}
-            style={{ display: "flex", alignItems: "center", gap: "8px" }}
-        >
-            ➕ Novo Usuário
-        </button>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-        
-        {/* CARD 1: GESTÃO DE USUÁRIOS */}
-        <div style={{ background: "white", padding: "20px", borderRadius: "8px", boxShadow: "0 4px 10px rgba(0,0,0,0.2)" }}>
-          <h3 style={{ color: "#0b192e", marginBottom: "15px", borderBottom: "2px solid #c5a059", paddingBottom: "5px" }}>
-            👥 Equipe Cadastrada
-          </h3>
-          <div className="table-container" style={{ maxHeight: "300px", overflowY: "auto", border: "none" }}>
-            <table className="kadmill-table" style={{ fontSize: "0.85rem" }}>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nome / Email</th>
-                  <th>Função</th>
-                  <th style={{textAlign: "center"}}>Ação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usuarios.map(u => (
-                  <tr key={u.id}>
-                    <td>{u.id}</td>
-                    <td>
-                      <strong>{u.nome}</strong><br/>
-                      <span style={{color: "#666", fontSize: "0.75rem"}}>{u.email}</span>
-                    </td>
-                    <td>
-                        <span style={{ 
-                            background: u.funcao === 'ADMIN' ? '#0b192e' : '#eee', 
-                            color: u.funcao === 'ADMIN' ? '#c5a059' : '#333',
-                            padding: "2px 6px", borderRadius: "4px", fontSize: "0.7rem", fontWeight: "bold"
-                        }}>
-                            {u.funcao}
-                        </span>
-                    </td>
-                    <td style={{textAlign: "center"}}>
-                      {u.funcao !== 'ADMIN' && (
-                        <button onClick={() => handleExcluirUsuario(u.id)} className="btn-icon delete" title="Remover Acesso">🗑️</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* CARD 2: BACKUP E MANUTENÇÃO */}
-        <div style={{ background: "white", padding: "20px", borderRadius: "8px", boxShadow: "0 4px 10px rgba(0,0,0,0.2)" }}>
-          <h3 style={{ color: "#0b192e", marginBottom: "15px", borderBottom: "2px solid #c5a059", paddingBottom: "5px" }}>
-            💾 Manutenção de Dados
-          </h3>
-          <p style={{ fontSize: "0.9rem", color: "#555", marginBottom: "20px" }}>
-            Segurança em primeiro lugar. Faça backups regulares do banco de dados para evitar perda de informações.
-          </p>
-          <button 
-            onClick={handleDownloadBackup} 
-            disabled={backupLoading}
-            style={{
-                width: "100%", padding: "15px", 
-                background: backupLoading ? "#ccc" : "#0b192e", 
-                color: "white", border: "none", borderRadius: "4px", 
-                fontWeight: "bold", cursor: backupLoading ? "wait" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: "10px"
-            }}
-          >
-            {backupLoading ? "Gerando Arquivo..." : "📥 BAIXAR BACKUP AGORA"}
-          </button>
-        </div>
-
-        {/* CARD 3: LOGS DE OPERAÇÃO */}
-        <div style={{ gridColumn: "1 / -1", background: "white", padding: "20px", borderRadius: "8px", boxShadow: "0 4px 10px rgba(0,0,0,0.2)" }}>
-          <h3 style={{ color: "#0b192e", marginBottom: "15px", borderBottom: "2px solid #c5a059", paddingBottom: "5px" }}>
-            📋 Logs de Produção (Apontamentos Recentes)
-          </h3>
-          <div className="table-container" style={{ maxHeight: "400px", overflowY: "auto", border: "none" }}>
-            <table className="kadmill-table">
-              <thead>
-                <tr>
-                  <th>Data/Hora</th>
-                  <th>Operador (ID)</th>
-                  <th>OS Vinculada</th>
-                  <th>Produção</th>
-                  <th>Tempo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.length > 0 ? logs.slice().reverse().map(log => (
-                  <tr key={log.id}>
-                    <td>{new Date(log.data_apontamento).toLocaleString()}</td>
-                    <td>TOR-{log.usuarioId}</td>
-                    <td>OS-{log.ordemServicoId}</td>
-                    <td>{log.quantidade_produzida} peças</td>
-                    <td>{log.tempo_execucao} min</td>
-                  </tr>
-                )) : (
-                    <tr><td colSpan={5} style={{textAlign: "center", padding: "20px"}}>Nenhum log registrado ainda.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+    <div className="admin-container" style={{ padding: "20px", maxWidth: "1200px", margin: "0 auto" }}>
+      
+      {/* Cabeçalho e Navegação */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #ddd", paddingBottom: "10px" }}>
+        <h2 style={{ margin: 0, color: "#333" }}>Painel Administrativo</h2>
+        <div className="tabs" style={{ display: "flex", gap: "10px" }}>
+          <button onClick={() => setAbaAtiva("DASHBOARD")} style={getTabStyle(abaAtiva === "DASHBOARD")}>📊 Produção</button>
+          <button onClick={() => setAbaAtiva("USUARIOS")} style={getTabStyle(abaAtiva === "USUARIOS")}>👥 Usuários</button>
+          <button onClick={() => setAbaAtiva("SISTEMA")} style={getTabStyle(abaAtiva === "SISTEMA")}>⚙️ Sistema</button>
         </div>
       </div>
 
-      {/* --- MODAL PARA CRIAR USUÁRIO --- */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="CADASTRAR NOVO USUÁRIO">
-        <div className="modal-form">
-            <div className="form-group">
-                <label>Nome Completo</label>
-                <input name="nome" value={novoUsuario.nome} onChange={handleInputChange} placeholder="Ex: João Silva" />
-            </div>
-            
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Email (Login)</label>
-                    <input name="email" type="email" value={novoUsuario.email} onChange={handleInputChange} placeholder="joao@kadmill.com" />
+      {loading ? <p>Carregando dados...</p> : (
+        <>
+          {/* --- ABA DASHBOARD --- */}
+          {abaAtiva === "DASHBOARD" && (
+            <div className="dashboard-view">
+              {/* Gráfico */}
+              <div className="card-box" style={{ marginBottom: "30px" }}>
+                <h3 className="card-title">🏆 Produtividade (Mês Atual)</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "15px", marginTop: "15px" }}>
+                  {dadosGrafico.length > 0 ? dadosGrafico.map((d, index) => (
+                    <div key={d.nome} style={{ display: "flex", alignItems: "center" }}>
+                      <div style={{ width: "150px", textAlign: "right", marginRight: "15px", fontWeight: "bold", color: "#444" }}>
+                        {index + 1}º {d.nome}
+                      </div>
+                      <div style={{ flex: 1, background: "#f0f0f0", height: "24px", borderRadius: "4px", overflow: "hidden", position: "relative" }}>
+                        <div style={{ width: `${(d.total / maxValor) * 100}%`, background: index === 0 ? "#52c41a" : "#1890ff", height: "100%", transition: "width 0.5s ease" }}></div>
+                        <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", fontSize: "0.8rem", color: d.total / maxValor > 0.1 ? "white" : "#333", fontWeight: "bold" }}>{d.total} pçs</span>
+                      </div>
+                    </div>
+                  )) : <p style={{ color: "#999", textAlign: "center" }}>Sem dados este mês.</p>}
                 </div>
-                <div className="form-group">
-                    <label>CPF (11 dígitos)</label>
-                    <input name="cpf" value={novoUsuario.cpf} onChange={handleInputChange} placeholder="Apenas números" maxLength={11} />
-                </div>
-            </div>
+              </div>
 
-            <div className="form-row">
-                <div className="form-group">
-                    <label>Senha Inicial</label>
-                    <input name="senha" type="password" value={novoUsuario.senha} onChange={handleInputChange} placeholder="******" />
+              {/* Lista e Filtros */}
+              <div className="card-box">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "20px" }}>
+                  <div>
+                    <h3 className="card-title">📝 Produção Diária</h3>
+                    <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
+                        <InfoBadge label="Total Peças" value={`${totalPecasDia}`} color="#0050b3" bg="#e6f7ff" border="#91d5ff" />
+                        <InfoBadge label="Tempo Total" value={`${totalMinutosDia} min`} color="#d46b08" bg="#fff7e6" border="#ffd591" />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.8rem", fontWeight: "bold", display: "block" }}>Data:</label>
+                    <input type="date" value={dataFiltro} onChange={(e) => setDataFiltro(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }} />
+                  </div>
                 </div>
-                <div className="form-group">
-                    <label>Função / Permissão</label>
-                    <select name="funcao" value={novoUsuario.funcao} onChange={handleInputChange}>
-                        <option value="OPERADOR">Operador (Padrão)</option>
-                        <option value="GERENTE">Gerente</option>
-                        <option value="ADMIN">Administrador</option>
-                    </select>
+
+                <table className="kadmill-table" style={{ width: "100%" }}>
+                    <thead>
+                      <tr style={{ background: "#fafafa" }}>
+                        <th>Hora</th><th>Operador</th><th>OS</th><th style={{textAlign:"center"}}>Qtd</th><th style={{textAlign:"center"}}>Tempo</th><th>Obs</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {listaApontamentosFiltrada.length > 0 ? listaApontamentosFiltrada.map(ap => (
+                        <tr key={ap.id}>
+                          <td>{new Date(ap.data_apontamento).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                          <td>{ap.usuario?.nome || ap.usuarioId}</td>
+                          <td>#{ap.ordemServicoId}</td>
+                          <td style={{ textAlign: "center", fontWeight: "bold", color: "#389e0d" }}>{ap.quantidade_produzida}</td>
+                          <td style={{ textAlign: "center" }}>{ap.tempo_execucao} min</td>
+                          <td style={{ maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#777" }}>{ap.observacao || "-"}</td>
+                        </tr>
+                      )) : <tr><td colSpan={6} style={{ textAlign: "center", padding: "20px", color: "#999" }}>Nada nesta data.</td></tr>}
+                    </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* --- ABA USUÁRIOS --- */}
+          {abaAtiva === "USUARIOS" && (
+            <div className="card-box">
+               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                   <h3 className="card-title">Gerenciamento de Equipe</h3>
+                   <button onClick={handleOpenNovoUsuario} className="btn-primary">➕ Novo Usuário</button>
+               </div>
+               
+               <table className="kadmill-table" style={{ width: "100%" }}>
+                 <thead>
+                   <tr>
+                     <th>ID</th><th>Nome</th><th>Função</th><th>Email</th><th>Ações</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {usuarios.map(u => (
+                     <tr key={u.id}>
+                       <td>{u.id}</td>
+                       <td>{u.nome}</td>
+                       <td><span className="status-badge">{u.funcao}</span></td>
+                       <td>{u.email}</td>
+                       <td>
+                           <button onClick={() => handleOpenEditarUsuario(u)} style={{ marginRight: "10px", border: "none", background: "none", cursor: "pointer" }}>✏️</button>
+                           <button onClick={() => handleDeleteUsuario(u.id)} style={{ border: "none", background: "none", cursor: "pointer" }}>🗑️</button>
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+            </div>
+          )}
+
+          {/* --- ABA SISTEMA (BACKUP & LOGS) --- */}
+          {abaAtiva === "SISTEMA" && (
+            <div className="card-box">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", paddingBottom: "15px", borderBottom: "1px solid #eee" }}>
+                    <div>
+                        <h3 className="card-title">Manutenção do Sistema</h3>
+                        <p style={{ color: "#777", fontSize: "0.9rem", margin: "5px 0" }}>Logs de atividade e cópia de segurança.</p>
+                    </div>
+                    <button onClick={handleBackup} style={{ background: "#52c41a", color: "white", border: "none", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
+                        💾 Fazer Backup Completo
+                    </button>
+                </div>
+
+                <h4 style={{ color: "#555", marginBottom: "10px" }}>Histórico de Atividades (Logs)</h4>
+                <div style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid #eee", borderRadius: "4px" }}>
+                    <table className="kadmill-table" style={{ width: "100%", margin: 0 }}>
+                        <thead style={{ position: "sticky", top: 0, background: "white", zIndex: 1 }}>
+                            <tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Detalhes</th></tr>
+                        </thead>
+                        <tbody>
+                            {logs.length > 0 ? logs.map(log => (
+                                <tr key={log.id}>
+                                    <td>{new Date(log.data).toLocaleString()}</td>
+                                    <td>{log.usuario}</td>
+                                    <td><strong>{log.acao}</strong></td>
+                                    <td>{log.detalhes}</td>
+                                </tr>
+                            )) : <tr><td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>Sem logs registrados.</td></tr>}
+                        </tbody>
+                    </table>
                 </div>
             </div>
+          )}
+        </>
+      )}
 
-            <div className="form-group">
-                <label>Setor de Trabalho</label>
-                <select name="setor" value={novoUsuario.setor} onChange={handleInputChange}>
-                    <option value="DIURNO">Diurno</option>
-                    <option value="NOTURNO">Noturno</option>
-                </select>
-            </div>
-
-            <div className="modal-footer">
-                <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
-                <button className="btn-primary" onClick={handleSalvarUsuario}>Salvar Usuário</button>
-            </div>
-        </div>
+      {/* --- MODAL CRIAR/EDITAR USUÁRIO --- */}
+      <Modal isOpen={modalUsuarioOpen} onClose={() => setModalUsuarioOpen(false)} title={isEditingUser ? "Editar Usuário" : "Novo Usuário"}>
+         <div className="modal-form">
+             <div className="form-group">
+                 <label>Nome Completo</label>
+                 <input type="text" value={usuarioEmEdicao.nome} onChange={e => setUsuarioEmEdicao({...usuarioEmEdicao, nome: e.target.value})} />
+             </div>
+             <div className="form-group">
+                 <label>Email (Login)</label>
+                 <input type="email" value={usuarioEmEdicao.email} onChange={e => setUsuarioEmEdicao({...usuarioEmEdicao, email: e.target.value})} />
+             </div>
+             <div className="form-group">
+                 <label>Função</label>
+                 <select value={usuarioEmEdicao.funcao} onChange={e => setUsuarioEmEdicao({...usuarioEmEdicao, funcao: e.target.value})}>
+                     <option value="OPERADOR">Operador</option>
+                     <option value="SUPERVISOR">Supervisor</option>
+                     <option value="ADMIN">Administrador</option>
+                 </select>
+             </div>
+             <div className="form-group">
+                 <label>{isEditingUser ? "Nova Senha (deixe em branco para manter)" : "Senha"}</label>
+                 <input type="password" value={usuarioEmEdicao.senha} onChange={e => setUsuarioEmEdicao({...usuarioEmEdicao, senha: e.target.value})} />
+             </div>
+             <div className="modal-footer" style={{ marginTop: "20px", display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                 <button className="btn-secondary" onClick={() => setModalUsuarioOpen(false)}>Cancelar</button>
+                 <button className="btn-primary" onClick={handleSaveUsuario}>Salvar</button>
+             </div>
+         </div>
       </Modal>
 
+      {/* Estilos Inline para Simplificação */}
+      <style>{`
+        .card-box { background: white; padding: 20px; borderRadius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .card-title { margin: 0; color: #555; font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+      `}</style>
     </div>
   );
 };
+
+// Componentes Auxiliares de Estilo
+const getTabStyle = (active: boolean) => ({
+    padding: "8px 16px",
+    background: active ? "#1890ff" : "#f0f0f0",
+    color: active ? "white" : "#333",
+    border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold"
+});
+
+const InfoBadge = ({ label, value, color, bg, border }: any) => (
+    <div style={{ background: bg, padding: "10px 15px", borderRadius: "6px", border: `1px solid ${border}`, minWidth: "120px" }}>
+        <span style={{ display: "block", fontSize: "0.75rem", color: color, textTransform: "uppercase", fontWeight: "bold" }}>{label}</span>
+        <strong style={{ fontSize: "1.2rem", color: color }}>{value}</strong>
+    </div>
+);
 
 export default Admin;

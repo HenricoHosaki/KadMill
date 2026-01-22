@@ -13,6 +13,11 @@ const Estoque: React.FC = () => {
   // Verifica permissão do usuário
   const userIsAdmin = isAdmin();
 
+  // --- LISTAS AUXILIARES (Para os Dropdowns) ---
+  const [listaFerramentas, setListaFerramentas] = useState<any[]>([]);
+  const [listaMaterias, setListaMaterias] = useState<any[]>([]);
+  const [listaProdutos, setListaProdutos] = useState<any[]>([]); // Caso precise no futuro
+
   // --- ESTADOS DE FILTRO ---
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [filtros, setFiltros] = useState({
@@ -38,6 +43,7 @@ const Estoque: React.FC = () => {
     setFiltros({ termo: "", id: "", status: "TODOS", data: "" });
   }, [abaAtiva]);
 
+  // --- CARREGAR DADOS DA ABA ATIVA ---
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -59,6 +65,26 @@ const Estoque: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // --- CARREGAR DADOS AUXILIARES (DROPDOWNS) ---
+  useEffect(() => {
+    const fetchAuxiliares = async () => {
+        try {
+            // Buscamos tudo em paralelo para ser rápido
+            const [resFerr, resMat, resProd] = await Promise.all([
+                api.get("/ferramentas"),
+                api.get("/materiasPrimas"),
+                api.get("/produtos")
+            ]);
+            setListaFerramentas(resFerr.data);
+            setListaMaterias(resMat.data);
+            setListaProdutos(resProd.data);
+        } catch (error) {
+            console.error("Erro ao carregar listas auxiliares", error);
+        }
+    };
+    fetchAuxiliares();
+  }, []); // Roda apenas uma vez ao abrir a tela
 
   useEffect(() => {
     fetchData();
@@ -114,7 +140,7 @@ const Estoque: React.FC = () => {
     setEditData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  // --- SALVAR EDIÇÃO (LIMPO) ---
+  // --- SALVAR EDIÇÃO ---
   const handleSaveEdit = async () => {
     try {
       let endpoint = "";
@@ -147,7 +173,6 @@ const Estoque: React.FC = () => {
 
       await api.put(endpoint, payload);
       
-      // SUCESSO!
       alert("✅ Atualizado com sucesso!");
       setIsEditing(false);
       fetchData(); 
@@ -161,7 +186,7 @@ const Estoque: React.FC = () => {
     }
   };
 
-  // --- EXCLUIR (LIMPO) ---
+  // --- EXCLUIR ---
   const handleDelete = async (id: number) => {
     if(!window.confirm("Tem certeza que deseja EXCLUIR este item?")) return;
     try {
@@ -175,7 +200,6 @@ const Estoque: React.FC = () => {
       }
       await api.delete(endpoint);
       
-      // SUCESSO!
       alert("✅ Item excluído.");
       
       setProdutoSelecionado(null); setMpSelecionada(null); setFerramentaSelecionada(null); 
@@ -186,7 +210,7 @@ const Estoque: React.FC = () => {
     }
   };
 
-  // Componente genérico para os modais simples (Produto, MP, Ferramenta, Apontamento)
+  // Componente genérico para os modais simples
   const ModalActions = ({ id }: { id: number }) => (
     <div style={{ marginTop: "20px", borderTop: "1px solid #eee", paddingTop: "15px", display: "flex", justifyContent: "space-between" }}>
         <div>
@@ -423,8 +447,8 @@ const Estoque: React.FC = () => {
                          <div style={{ marginTop: "15px", padding: "10px", background: "#f8f9fa", borderRadius: "4px", border: "1px solid #ddd" }}>
                             <h4 style={{ fontSize: "0.9rem", color: "#333", marginBottom: "10px" }}>Recursos e Produção</h4>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                                <p><strong>Ferramenta (ID):</strong> {apontamentoSelecionado.ferramentaId || "-"}</p>
-                                <p><strong>Matéria Prima (ID):</strong> {apontamentoSelecionado.materiaPrimaId || "-"}</p>
+                                <p><strong>Ferramenta:</strong> {listaFerramentas.find(f => f.id === apontamentoSelecionado.ferramentaId)?.nome || apontamentoSelecionado.ferramentaId || "-"}</p>
+                                <p><strong>Matéria Prima:</strong> {listaMaterias.find(m => m.id === apontamentoSelecionado.materiaPrimaId)?.nome || apontamentoSelecionado.materiaPrimaId || "-"}</p>
                                 <p><strong>Qtd. MP Usada:</strong> {apontamentoSelecionado.quantidade_utilizada}</p>
                                 <p><strong>Qtd. Produzida:</strong> {apontamentoSelecionado.quantidade_produzida}</p>
                             </div>
@@ -450,12 +474,22 @@ const Estoque: React.FC = () => {
                         <div style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd", margin: "10px 0" }}>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>ID Ferramenta</label>
-                                    <input type="number" name="ferramentaId" value={editData.ferramentaId || ""} onChange={handleEditChange} placeholder="ID" />
+                                    <label>Ferramenta Utilizada</label>
+                                    <select name="ferramentaId" value={editData.ferramentaId || ""} onChange={handleEditChange}>
+                                        <option value="">Selecione uma Ferramenta...</option>
+                                        {listaFerramentas.map(f => (
+                                            <option key={f.id} value={f.id}>{f.nome} (Cod: {f.id})</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="form-group">
-                                    <label>ID Matéria Prima</label>
-                                    <input type="number" name="materiaPrimaId" value={editData.materiaPrimaId || ""} onChange={handleEditChange} placeholder="ID" />
+                                    <label>Matéria Prima</label>
+                                    <select name="materiaPrimaId" value={editData.materiaPrimaId || ""} onChange={handleEditChange}>
+                                        <option value="">Selecione a Matéria Prima...</option>
+                                        {listaMaterias.map(m => (
+                                            <option key={m.id} value={m.id}>{m.nome} (Qtd: {m.quantidade_disponivel})</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                             <div className="form-row">
@@ -560,7 +594,16 @@ const Estoque: React.FC = () => {
                     <>
                         <div className="form-row">
                              <div className="form-group"><label>Meta Produção (Qtd)</label><input type="number" name="quantidade_esperada" value={editData.quantidade_esperada || 0} onChange={handleEditChange} /></div>
-                             <div className="form-group"><label>Equipamento</label><input name="equipamento_utilizado" value={editData.equipamento_utilizado || ""} onChange={handleEditChange} /></div>
+                             <div className="form-group">
+                                <label>Equipamento / Máquina</label>
+                                {/* LISTA DE FERRAMENTAS COMO EQUIPAMENTOS */}
+                                <select name="equipamento_utilizado" value={editData.equipamento_utilizado || ""} onChange={handleEditChange}>
+                                    <option value="">Selecione...</option>
+                                    {listaFerramentas.map(f => (
+                                        <option key={f.id} value={f.nome}>{f.nome} (Tipo: {f.tipo})</option>
+                                    ))}
+                                </select>
+                             </div>
                         </div>
                         <div className="form-row">
                             <div className="form-group">
