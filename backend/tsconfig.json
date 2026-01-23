@@ -2,8 +2,8 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
+     "rootDir": "./src",
+     "outDir": "./dist",
     
     // Alterado para "./src/types" para encontrar seu arquivo express.d.ts
     "typeRoots": ["./src/types", "./node_modules/@types"],
@@ -49,5 +49,5 @@
   },
   
   // Adicionado para garantir que o compilador processe os arquivos de tipos dentro de src
-  "include": ["src/**/*", "*.ts"]
+  "include": ["src/**/*"]
 }

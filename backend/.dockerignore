@@ -3,3 +3,5 @@ node_modules
 Dockerfile
 .dockerignore
 .env
+prisma.config.ts
+prisma.config.js

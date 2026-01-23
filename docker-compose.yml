@@ -9,20 +9,20 @@ services:
       - "3333:3333"
     environment:
       # --- BANCO DE DADOS (Mantemos no Railway, pois funcionou) ---
-      DATABASE_URL: "postgresql://postgres:IKWzKGEgQwahWaFrZjMnArStoMkkwuSH@turntable.proxy.rlwy.net:18883/railway"
+      DATABASE_URL: ${DATABASE_URL}
       
       # --- REDIS (Mudamos para LOCAL - Container abaixo) ---
-      REDIS_HOST: "redis"  # Nome do serviço abaixo
+      REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: "6379"
       REDIS_PASSWORD: ""   # Sem senha para local
       
       # Configurações da App
       PORT: 3333
-      JWT_SECRET: "H0sT@lkq134./d2" 
+      JWT_SECRET: ${JWT_SECRET}
       
       # Admin Bootstrap
-      BOOTSTRAP_ADMIN_EMAIL: "kadmillAdminGeral@gmail.com"
-      BOOTSTRAP_ADMIN_PASSWORD: "8j@LKmn#3"
+      BOOTSTRAP_ADMIN_EMAIL: ${ADMIN_EMAIL}
+      BOOTSTRAP_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     depends_on:
       - redis
     networks:
