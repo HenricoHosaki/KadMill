@@ -12,7 +12,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       
       # --- REDIS (Mudamos para LOCAL - Container abaixo) ---
-      REDIS_HOST: ${REDIS_HOST}
+      REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_PASSWORD: ""   # Sem senha para local
       
