@@ -4,29 +4,17 @@ services:
   # --- Backend API ---
   backend:
     build: ./backend
-    container_name: kadmill_backend
-    ports:
-      - "3333:3333"
+    # Force o Docker a ler o arquivo de ambiente da raiz
+    env_file: .env 
     environment:
-      # --- BANCO DE DADOS (Mantemos no Railway, pois funcionou) ---
-      DATABASE_URL: ${DATABASE_URL}
-      
-      # --- REDIS (Mudamos para LOCAL - Container abaixo) ---
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
-      REDIS_PASSWORD: ""   # Sem senha para local
-      
-      # Configurações da App
-      PORT: 3333
-      JWT_SECRET: ${JWT_SECRET}
-      
-      # Admin Bootstrap
-      BOOTSTRAP_ADMIN_EMAIL: ${ADMIN_EMAIL}
-      BOOTSTRAP_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      - DATABASE_URL=${DATABASE_URL}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - redis
-    networks:
-      - kadmill_network
 
   # --- [NOVO] Redis Local (Para fugir do bloqueio de rede) ---
   redis:
