@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # --- Banco de Dados PostgreSQL ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: kadmill_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: kadmill_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kadmill_network
+
+  # --- Cache/Fila Redis ---
+  redis:
+    image: redis:alpine
+    container_name: kadmill_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - kadmill_network
+
+  # --- Backend API ---
+  backend:
+    build: ./backend
+    container_name: kadmill_backend
+    ports:
+      - "3000:3000"
+    environment:
+      # ATENÇÃO: Aqui usamos o nome do serviço 'postgres' e 'redis' como host
+      DATABASE_URL: "postgresql://admin:adminpassword@postgres:5432/kadmill_db?schema=public"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      PORT: 3000
+      JWT_SECRET: "sua_senha_secreta_aqui" 
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - kadmill_network
+
+  # --- Frontend App ---
+  frontend:
+    build: ./frontend
+    container_name: kadmill_frontend
+    ports:
+      - "5173:80" # Acessar no navegador via localhost:5173
+    depends_on:
+      - backend
+    networks:
+      - kadmill_network
+
+volumes:
+  postgres_data:
+
+networks:
+  kadmill_network:
+    driver: bridge

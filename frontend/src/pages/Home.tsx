@@ -110,7 +110,7 @@ const Home: React.FC = () => {
       
       {/* 1. CABEÇALHO E MÉTRICAS (KPIS) */}
       <div style={{ marginBottom: "30px" }}>
-        <h2 style={{ color: "#333", marginBottom: "20px" }}>Painel de Controle</h2>
+        <h2 style={{ color: "#ffffff", marginBottom: "20px" }}>Painel de Controle</h2>
         
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
           
@@ -134,8 +134,8 @@ const Home: React.FC = () => {
 
           {/* Card FATURAMENTO (Apenas Admin) */}
           {userIsAdmin && (
-            <div style={{ background: "#333", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", color: "white" }}>
-               <h3 style={{ margin: 0, color: "#aaa", fontSize: "0.9rem", textTransform: "uppercase" }}>Em Carteira (Estimado)</h3>
+            <div style={{ background: "#538630", padding: "20px", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", color: "white" }}>
+               <h3 style={{ margin: 0, color: "#ffffff", fontSize: "0.9rem", textTransform: "uppercase" }}>Em Carteira (Estimado)</h3>
                <p style={{ fontSize: "1.8rem", fontWeight: "bold", margin: "10px 0 0 0" }}>
                  R$ {kpis.faturamentoPotencial.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                </p>
@@ -147,7 +147,7 @@ const Home: React.FC = () => {
       {/* 2. QUADRO KANBAN */}
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-            <h3 style={{ color: "#555" }}>Fluxo de Trabalho</h3>
+            <h3 style={{ color: "#ffffff" }}>Fluxo de Trabalho</h3>
             <Link to="/estoque" style={{ textDecoration: "none", fontSize: "0.9rem", color: "#1890ff", fontWeight: "bold" }}>Ver Lista Completa →</Link>
         </div>
 
@@ -156,7 +156,7 @@ const Home: React.FC = () => {
             {/* Coluna 1: A FAZER */}
             <div style={{ background: "#f4f5f7", padding: "15px", borderRadius: "8px", minHeight: "200px" }}>
                 <h4 style={{ margin: "0 0 15px 0", paddingBottom: "10px", borderBottom: "2px solid #e0e0e0", color: "#666", display: "flex", justifyContent: "space-between" }}>
-                    <span>📥 A Fazer</span>
+                    <span> A Fazer</span>
                     <span style={{ background: "#e0e0e0", padding: "2px 8px", borderRadius: "10px", fontSize: "0.8rem" }}>{kpis.abertas}</span>
                 </h4>
                 {loading ? <p>Carregando...</p> : 
@@ -171,7 +171,7 @@ const Home: React.FC = () => {
             {/* Coluna 2: EM PRODUÇÃO */}
             <div style={{ background: "#e6f7ff", padding: "15px", borderRadius: "8px", minHeight: "200px", border: "1px dashed #91d5ff" }}>
                 <h4 style={{ margin: "0 0 15px 0", paddingBottom: "10px", borderBottom: "2px solid #91d5ff", color: "#0050b3", display: "flex", justifyContent: "space-between" }}>
-                    <span>⚙️ Em Produção</span>
+                    <span> Em Produção</span>
                     <span style={{ background: "#bae7ff", padding: "2px 8px", borderRadius: "10px", fontSize: "0.8rem" }}>{kpis.andamento}</span>
                 </h4>
                 {loading ? <p>Carregando...</p> : 
@@ -183,7 +183,7 @@ const Home: React.FC = () => {
             {/* Coluna 3: PRONTO */}
             <div style={{ background: "#f6ffed", padding: "15px", borderRadius: "8px", minHeight: "200px" }}>
                 <h4 style={{ margin: "0 0 15px 0", paddingBottom: "10px", borderBottom: "2px solid #b7eb8f", color: "#389e0d", display: "flex", justifyContent: "space-between" }}>
-                    <span>✅ Finalizado</span>
+                    <span> Finalizado</span>
                     <span style={{ background: "#d9f7be", padding: "2px 8px", borderRadius: "10px", fontSize: "0.8rem" }}>{kpis.concluidas}</span>
                 </h4>
                 {loading ? <p>Carregando...</p> : 

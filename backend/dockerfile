@@ -1,15 +1,28 @@
-FROM node:24
+# Etapa 1: Build
+FROM node:24-alpine
 
 WORKDIR /app
 
+# Copia os arquivos de dependência
 COPY package*.json ./
+COPY prisma ./prisma/
 
+# Instala dependências
 RUN npm install
 
-RUN apt-get update && apt-get install -y postgresql-client
-
+# Copia o restante do código
 COPY . .
 
+# Gera o cliente do Prisma
+RUN npx prisma generate
+
+# Compila o TypeScript (se você tiver script de build) ou prepara para rodar
+# Aqui vamos assumir que você quer rodar em produção
+RUN npm run build
+
+# Expõe a porta do backend
 EXPOSE 3333
 
-CMD [ "npm", "start"]
+# Comando para iniciar (roda as migrations e inicia o server)
+# Nota: Em produção real, migrations devem ser rodadas separadamente, mas aqui facilita
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]

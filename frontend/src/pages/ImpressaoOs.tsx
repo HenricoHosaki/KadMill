@@ -41,7 +41,6 @@ const ImpressaoOS: React.FC = () => {
         // Pequeno delay para garantir que o DOM renderizou antes de abrir o print
         setTimeout(() => window.print(), 500); 
       })
-      .catch((err) => alert("Erro ao carregar dados para impressão."));
   }, [id]);
 
   if (!os) return <div className="p-4">Carregando documento...</div>;

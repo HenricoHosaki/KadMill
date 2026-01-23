@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Modal from "./Modal";
 import { api } from "../services/api";
@@ -17,7 +17,30 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [formData, setFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
 
+  // --- Estados para as Listas dos Selects ---
+  const [listaFerramentas, setListaFerramentas] = useState<any[]>([]);
+  const [listaMaterias, setListaMaterias] = useState<any[]>([]);
+
   const userId = localStorage.getItem("kadmill:userId") || "Usuário";
+
+  // --- Busca ferramentas e matérias-primas ao carregar o Layout ---
+  useEffect(() => {
+    const fetchAuxiliares = async () => {
+        if (listaFerramentas.length === 0 || listaMaterias.length === 0) {
+            try {
+                const [resFerr, resMat] = await Promise.all([
+                    api.get("/ferramentas"),
+                    api.get("/materiasPrimas")
+                ]);
+                setListaFerramentas(resFerr.data);
+                setListaMaterias(resMat.data);
+            } catch (error) {
+                console.error("Erro ao carregar listas auxiliares no Layout:", error);
+            }
+        }
+    };
+    fetchAuxiliares();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("kadmill:token");
@@ -30,96 +53,84 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  // --- SUA LÓGICA DE SUBMIT ORIGINAL (MANTIDA) ---
-  // Em: src/components/Layout.tsx
-
-const handleSubmit = async () => {
-  setLoading(true);
-  try {
-    let endpoint = "";
-    switch (activeModal) {
-      case "OS": endpoint = "/ordensServicos"; break; // Verifica se o endpoint está plural ou singular no seu backend
-      case "APONTAMENTO": endpoint = "/apontamentos"; break;
-      case "MP": endpoint = "/materiasPrimas"; break;
-      case "PRODUTO": endpoint = "/produtos"; break;
-      case "CLIENTE": endpoint = "/clientes"; break;
-      case "FORNECEDOR": endpoint = "/fornecedores"; break;
-      case "FERRAMENTA": endpoint = "/ferramentas"; break;
-    }
-
-    const payload = { ...formData };
-
-    // --- (BLOCOS DE CORREÇÃO DE DADOS MANTIDOS IGUAIS) ---
-    if (activeModal === "MP") {
-        if (!payload.unidade_medida) payload.unidade_medida = "KG";
-        if (!payload.descricao) payload.descricao = "-";
-    }
-
-    if (activeModal === "PRODUTO") {
-      if (payload.calculo_custo) {
-        payload.custo_unitario = Number(payload.calculo_custo);
-        delete payload.calculo_custo;
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      let endpoint = "";
+      switch (activeModal) {
+        case "OS": endpoint = "/ordensServicos"; break;
+        case "APONTAMENTO": endpoint = "/apontamentos"; break;
+        case "MP": endpoint = "/materiasPrimas"; break;
+        case "PRODUTO": endpoint = "/produtos"; break;
+        case "CLIENTE": endpoint = "/clientes"; break;
+        case "FORNECEDOR": endpoint = "/fornecedores"; break;
+        case "FERRAMENTA": endpoint = "/ferramentas"; break;
       }
-      if (!payload.unidade) payload.unidade = "KG";
-      if (payload.id) payload.id = Number(payload.id);
-      else delete payload.id;
-    }
-    
-    const numericFields = [
-      "usuarioId", "ordemServicoId", "materiaPrimaId", "ferramentaId",
-      "quantidade_utilizada", "quantidade_produzida", "tempo_execucao", 
-      "clienteId", "valor_total", "quantidade_disponivel", "preco_custo",
-      "quantidade_estoque", "preco_unitario", "fornecedorId", "custo_unitario",
-      "numero_os", "tempo_total_execucao", "quantidade_esperada"
-    ];
-    
-    numericFields.forEach(field => {
-      if (payload[field] === "") {
-          delete payload[field];
-      } 
-      else if (payload[field] !== undefined) {
-        payload[field] = Number(payload[field]);
+
+      const payload = { ...formData };
+
+      // Blocos de correção de dados
+      if (activeModal === "MP") {
+          if (!payload.unidade_medida) payload.unidade_medida = "KG";
+          if (!payload.descricao) payload.descricao = "-";
       }
-    });
 
-    // --- AQUI COMEÇA A NOVA LÓGICA DE IMPRESSÃO ---
-
-    // 1. Enviamos os dados e CAPTURAMOS a resposta (que contém o ID criado)
-    const response = await api.post(endpoint, payload);
-
-    // 2. Se for uma OS, oferecemos a impressão
-    if (activeModal === "OS") {
-      // Verifica se o ID veio na resposta (PostgreSQL/Prisma geralmente retorna o objeto criado)
-      const novoId = response.data?.id;
-
-      if (novoId) {
-        const desejaImprimir = window.confirm("Ordem de Serviço salva! Deseja imprimir agora?");
-        
-        if (desejaImprimir) {
-          // Abre a tela de impressão em uma nova aba
-          // OBS: Certifique-se que a rota /imprimir/os/:id existe no AppRouter
-          window.open(`/imprimir/os/${novoId}`, '_blank');
+      if (activeModal === "PRODUTO") {
+        if (payload.calculo_custo) {
+          payload.custo_unitario = Number(payload.calculo_custo);
+          delete payload.calculo_custo;
         }
+        if (!payload.unidade) payload.unidade = "KG";
+        if (payload.id) payload.id = Number(payload.id);
+        else delete payload.id;
       }
-    } else {
-      // Para outros modais, segue o fluxo normal
-      alert("Registro salvo com sucesso!");
+      
+      const numericFields = [
+        "usuarioId", "ordemServicoId", "materiaPrimaId", "ferramentaId",
+        "quantidade_utilizada", "quantidade_produzida", "tempo_execucao", 
+        "clienteId", "valor_total", "quantidade_disponivel", "preco_custo",
+        "quantidade_estoque", "preco_unitario", "fornecedorId", "custo_unitario",
+        "numero_os", "tempo_total_execucao", "quantidade_esperada"
+      ];
+      
+      numericFields.forEach(field => {
+        if (payload[field] === "") {
+            delete payload[field];
+        } 
+        else if (payload[field] !== undefined) {
+          payload[field] = Number(payload[field]);
+        }
+      });
+
+      // Envia os dados
+      const response = await api.post(endpoint, payload);
+
+      // Lógica de Impressão para OS
+      if (activeModal === "OS") {
+        const novoId = response.data?.id;
+        if (novoId) {
+          const desejaImprimir = window.confirm("Ordem de Serviço salva! Deseja imprimir agora?");
+          if (desejaImprimir) {
+            window.open(`/imprimir/os/${novoId}`, '_blank');
+          }
+        }
+      } else {
+        alert("Registro salvo com sucesso!");
+      }
+
+      // Limpa e recarrega
+      setActiveModal(null);
+      setFormData({});
+      window.location.reload(); 
+
+    } catch (error: any) {
+      console.error("Erro ao salvar:", error);
+      alert(error.response?.data?.message || error.response?.data?.error || "Erro ao salvar o registro.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Limpa e recarrega
-    setActiveModal(null);
-    setFormData({});
-    window.location.reload(); 
-
-  } catch (error: any) {
-    console.error("Erro ao salvar:", error);
-    alert(error.response?.data?.message || error.response?.data?.error || "Erro ao salvar o registro.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-  // --- SEU CONTEÚDO DE MODAL ORIGINAL (COM OS NOVOS CAMPOS ADICIONADOS) ---
   const renderModalContent = () => {
     switch (activeModal) {
       case "PRODUTO":
@@ -230,8 +241,18 @@ const handleSubmit = async () => {
                 <input name="clienteId" type="number" onChange={handleChange} required />
               </div>
               <div className="form-group">
-                <label>EQUIPAMENTO</label> {/* NOVO */}
-                <input name="equipamento_utilizado" type="text" onChange={handleChange} placeholder="Ex: Torno CNC" />
+                <label>EQUIPAMENTO</label>
+                {/* [MODIFICADO] AGORA USA O SELECT DE FERRAMENTAS */}
+                <select 
+                    name="equipamento_utilizado" 
+                    onChange={handleChange}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
+                >
+                    <option value="">Selecione (Opcional)...</option>
+                    {listaFerramentas.map(f => (
+                        <option key={f.id} value={f.nome}>{f.nome} - {f.tipo}</option>
+                    ))}
+                </select>
               </div>
             </div>
             
@@ -242,7 +263,7 @@ const handleSubmit = async () => {
                 </div>
                 
                 <div className="form-group">
-                    <label>TEMPO TOTAL ESTIMADO (Min)</label> {/* NOVO */}
+                    <label>TEMPO TOTAL ESTIMADO (Min)</label>
                     <input name="tempo_total_execucao" type="number" onChange={handleChange} />
                 </div>
             </div>
@@ -284,11 +305,11 @@ const handleSubmit = async () => {
             
             <div className="form-row">
               <div className="form-group">
-                <label>INÍCIO TRABALHO</label> {/* NOVO */}
+                <label>INÍCIO TRABALHO</label>
                 <input name="inicio_trabalho" type="datetime-local" onChange={handleChange} />
               </div>
               <div className="form-group">
-                <label>FIM TRABALHO</label> {/* NOVO */}
+                <label>FIM TRABALHO</label>
                 <input name="fim_trabalho" type="datetime-local" onChange={handleChange} />
               </div>
             </div>
@@ -304,18 +325,37 @@ const handleSubmit = async () => {
               </div>
             </div>
 
-             {/* ... (Bloco de Insumos/Ferramentas continua igual) ... */}
+             {/* BLOCO DE SELECTS DE INSUMOS */}
              <div style={{ background: "#f8f9fa", padding: "10px", borderRadius: "4px", border: "1px solid #ddd" }}>
                 <div className="form-row" style={{ marginBottom: "10px" }}>
                     <div className="form-group">
-                        <label>ID MATÉRIA PRIMA</label>
-                        <input name="materiaPrimaId" type="number" onChange={handleChange} placeholder="Opcional" />
+                        <label>MATÉRIA PRIMA</label>
+                        <select 
+                            name="materiaPrimaId" 
+                            onChange={handleChange}
+                            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
+                        >
+                            <option value="">Selecione (Opcional)...</option>
+                            {listaMaterias.map(m => (
+                                <option key={m.id} value={m.id}>{m.nome} (Qtd: {m.quantidade_disponivel})</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="form-group">
-                        <label>ID FERRAMENTA</label>
-                        <input name="ferramentaId" type="number" onChange={handleChange} placeholder="Opcional" />
+                        <label>FERRAMENTA</label>
+                        <select 
+                            name="ferramentaId" 
+                            onChange={handleChange}
+                            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "100%" }}
+                        >
+                            <option value="">Selecione (Opcional)...</option>
+                            {listaFerramentas.map(f => (
+                                <option key={f.id} value={f.id}>{f.nome} - {f.tipo}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
+                
                 <div className="form-row">
                     <div className="form-group">
                         <label style={{ color: "#d9534f" }}>QTD. MP USADA</label>
@@ -344,7 +384,6 @@ const handleSubmit = async () => {
               <input name="nome" type="text" onChange={handleChange} required />
             </div>
             
-            {/* ADICIONE ESTE BLOCO APENAS SE FOR FORNECEDOR */}
             {activeModal === "FORNECEDOR" && (
                 <div className="form-group">
                   <label>PESSOA DE CONTATO</label>
@@ -410,15 +449,12 @@ const handleSubmit = async () => {
     }
   };
 
-  // --- NOVA ESTRUTURA DE NAVEGAÇÃO ---
-  
-  // Define se o menu lateral de ações (o antigo) deve aparecer
   const showActionSidebar = location.pathname === "/estoque" || location.pathname === "/contatos";
 
   return (
     <div className="root-layout" style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}>
       
-      {/* 1. NOVO MENU DE NAVEGAÇÃO GLOBAL (Esquerda Extrema, Retrátil) */}
+      {/* 1. MENU DE NAVEGAÇÃO GLOBAL */}
       <aside className={`global-nav ${!navOpen ? "collapsed" : ""}`}>
         <div className="nav-header">
             <button className="toggle-btn" onClick={() => setNavOpen(!navOpen)}>
@@ -428,7 +464,7 @@ const handleSubmit = async () => {
         <ul className="global-links">
             <li>
                 <Link to="/" title="Início">
-                    <span className="icon">🏠</span> 
+                    <span className="icon">🌐</span> 
                     {navOpen && <span>Início</span>}
                 </Link>
             </li>
@@ -447,7 +483,7 @@ const handleSubmit = async () => {
             {userIsAdmin && (
                 <li>
                     <Link to="/admin" title="Admin" style={{color: '#c5a059'}}>
-                        <span className="icon">🛡️</span> 
+                        <span className="icon">🔐</span> 
                         {navOpen && <span>Admin</span>}
                     </Link>
                 </li>
@@ -455,16 +491,15 @@ const handleSubmit = async () => {
         </ul>
         <div className="nav-footer">
             <button onClick={handleLogout} title="Sair">
-                <span className="icon">🚪</span> 
+                <span className="icon">📤</span> 
                 {navOpen && <span>Sair</span>}
             </button>
         </div>
       </aside>
 
-      {/* 2. ÁREA PRINCIPAL (Header + Sidebar de Ações + Conteúdo) */}
+      {/* 2. ÁREA PRINCIPAL */}
       <div className="app-container" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         
-        {/* Cabeçalho Superior (Agora só com User Info, sem links de navegação) */}
         <header className="top-nav">
             <div className="nav-left-group">
                 <h2 style={{color: "white", fontSize: "1.2rem", marginLeft: "10px", margin: 0}}>
@@ -480,7 +515,7 @@ const handleSubmit = async () => {
 
         <div className="main-content" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
             
-            {/* 3. MENU DE AÇÕES FIXO (O seu menu antigo, só em Estoque/Contatos) */}
+            {/* 3. MENU DE AÇÕES FIXO */}
             {showActionSidebar && (
                 <aside className="sidebar" style={{ width: "250px", borderRight: "1px solid #ddd", background: "#f4f4f4", display: "flex", flexDirection: "column" }}>
                     <div className="sidebar-content" style={{ padding: "20px" }}>

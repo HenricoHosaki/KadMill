@@ -16,7 +16,6 @@ const Estoque: React.FC = () => {
   // --- LISTAS AUXILIARES (Para os Dropdowns) ---
   const [listaFerramentas, setListaFerramentas] = useState<any[]>([]);
   const [listaMaterias, setListaMaterias] = useState<any[]>([]);
-  const [listaProdutos, setListaProdutos] = useState<any[]>([]); // Caso precise no futuro
 
   // --- ESTADOS DE FILTRO ---
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
@@ -71,14 +70,13 @@ const Estoque: React.FC = () => {
     const fetchAuxiliares = async () => {
         try {
             // Buscamos tudo em paralelo para ser rápido
-            const [resFerr, resMat, resProd] = await Promise.all([
+            const [resFerr, resMat] = await Promise.all([
                 api.get("/ferramentas"),
                 api.get("/materiasPrimas"),
                 api.get("/produtos")
             ]);
             setListaFerramentas(resFerr.data);
             setListaMaterias(resMat.data);
-            setListaProdutos(resProd.data);
         } catch (error) {
             console.error("Erro ao carregar listas auxiliares", error);
         }

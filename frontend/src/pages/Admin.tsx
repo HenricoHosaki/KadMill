@@ -210,7 +210,7 @@ const Admin: React.FC = () => {
             <div className="dashboard-view">
               {/* Gráfico */}
               <div className="card-box" style={{ marginBottom: "30px" }}>
-                <h3 className="card-title">🏆 Produtividade (Mês Atual)</h3>
+                <h3 className="card-title"> Produtividade (Mês Atual)</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: "15px", marginTop: "15px" }}>
                   {dadosGrafico.length > 0 ? dadosGrafico.map((d, index) => (
                     <div key={d.nome} style={{ display: "flex", alignItems: "center" }}>
@@ -230,7 +230,7 @@ const Admin: React.FC = () => {
               <div className="card-box">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "20px" }}>
                   <div>
-                    <h3 className="card-title">📝 Produção Diária</h3>
+                    <h3 className="card-title"> Produção Diária</h3>
                     <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
                         <InfoBadge label="Total Peças" value={`${totalPecasDia}`} color="#0050b3" bg="#e6f7ff" border="#91d5ff" />
                         <InfoBadge label="Tempo Total" value={`${totalMinutosDia} min`} color="#d46b08" bg="#fff7e6" border="#ffd591" />
