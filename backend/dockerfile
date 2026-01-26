@@ -25,4 +25,4 @@ EXPOSE 3333
 
 # Comando para iniciar (roda as migrations e inicia o server)
 # Nota: Em produção real, migrations devem ser rodadas separadamente, mas aqui facilita
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+CMD ["npm", "start"]
