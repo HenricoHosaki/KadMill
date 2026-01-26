@@ -21,7 +21,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [listaFerramentas, setListaFerramentas] = useState<any[]>([]);
   const [listaMaterias, setListaMaterias] = useState<any[]>([]);
 
-  const userId = localStorage.getItem("kadmill:userId") || "Usuário";
+  // --- CORREÇÃO AQUI: Ler Nome e ID ---
+  const [userId, setUserId] = useState<string>("Usuário");
+  const [userName, setUserName] = useState<string>("");
+
+  useEffect(() => {
+    // Busca os dados do localStorage ao carregar o componente
+    const storedId = localStorage.getItem("kadmill:userId");
+    const storedName = localStorage.getItem("kadmill:userName");
+
+    if (storedId) setUserId(storedId);
+    if (storedName) setUserName(storedName);
+  }, []);
 
   // --- Busca ferramentas e matérias-primas ao carregar o Layout ---
   useEffect(() => {
@@ -40,11 +51,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
     };
     fetchAuxiliares();
-  }, []);
+  }, [listaFerramentas.length, listaMaterias.length]); // Adicionei dependências para evitar loop
 
   const handleLogout = () => {
     localStorage.removeItem("kadmill:token");
     localStorage.removeItem("kadmill:userId");
+    localStorage.removeItem("kadmill:userName"); // Limpa o nome também
     navigate("/login");
   };
 
@@ -509,7 +521,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </h2>
             </div>
             <div className="nav-user-info">
-                <span className="user-name">Logado como: <strong>ID {userId}</strong></span>
+                {/* --- MUDANÇA VISUAL AQUI --- */}
+                <span className="user-name">Logado como: <strong>{userName || `ID ${userId}`}</strong></span>
             </div>
         </header>
 
