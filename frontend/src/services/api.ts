@@ -3,11 +3,23 @@ Ele cuida do endereço, formato, segurança (token) e AGORA TAMBÉM dos erros gl
 
 import axios from "axios"; 
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3333';
-//localhost:3333
+const getBaseURL = () => {
+  const url = import.meta.env.VITE_API_URL;
+  
+  if (!url) return 'http://localhost:3333';
+
+  // Garante que a URL comece com http e não tenha espaços ou barras extras
+  let cleanUrl = url.trim().replace(/\/$/, "");
+  
+  if (!cleanUrl.startsWith('http')) {
+    cleanUrl = `https://${cleanUrl}`;
+  }
+  
+  return cleanUrl;
+};
 
 export const api = axios.create({
-  baseURL, 
+  baseURL: getBaseURL(), 
   headers: {
     "Content-Type": "application/json", 
   },
