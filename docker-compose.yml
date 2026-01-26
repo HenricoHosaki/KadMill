@@ -4,21 +4,24 @@ services:
   # --- Backend API ---
   backend:
     build: ./backend
-    # Force o Docker a ler o arquivo de ambiente da raiz
-    env_file: .env 
+    env_file: .env
+    ports:                 # <--- ADD THIS SECTION
+      - "3333:3333"
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
-      - REDIS_HOST=redis
+      - REDIS_HOST=redis  # Alterado para coincidir com o nome do serviço abaixo
       - REDIS_PORT=6379
     depends_on:
       - redis
+    networks:
+      - kadmill_network  # Adicionado para entrar na mesma rede do Redis
 
-  # --- [NOVO] Redis Local (Para fugir do bloqueio de rede) ---
+  # --- Redis Local ---
   redis:
-    image: redis:alpine
+    image: redis/redis-stack-server:latest
     container_name: kadmill_redis
     ports:
       - "6379:6379"

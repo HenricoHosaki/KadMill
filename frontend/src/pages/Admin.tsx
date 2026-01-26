@@ -8,6 +8,8 @@ interface Usuario {
   nome: string;
   email: string;
   funcao: string;
+  senha: string;
+  cpf: string; // <--- CORRIGIDO: Tipo string
 }
 
 interface Apontamento {
@@ -37,7 +39,15 @@ const Admin: React.FC = () => {
   // Estados de Manipulação de Usuário
   const [modalUsuarioOpen, setModalUsuarioOpen] = useState(false);
   const [isEditingUser, setIsEditingUser] = useState(false);
-  const [usuarioEmEdicao, setUsuarioEmEdicao] = useState<any>({ nome: "", email: "", senha: "", funcao: "OPERADOR" });
+  
+  // <--- ATUALIZADO: Adicionado cpf vazio no estado inicial
+  const [usuarioEmEdicao, setUsuarioEmEdicao] = useState<any>({ 
+    nome: "", 
+    email: "", 
+    senha: "", 
+    funcao: "OPERADOR", 
+    cpf: "" 
+  });
 
   // --- CARREGAMENTO DE DADOS ---
   const fetchDados = async () => {
@@ -98,7 +108,8 @@ const Admin: React.FC = () => {
 
   // --- LÓGICA DE USUÁRIOS (CRIAR / EDITAR / EXCLUIR) ---
   const handleOpenNovoUsuario = () => {
-    setUsuarioEmEdicao({ nome: "", email: "", senha: "", funcao: "OPERADOR" });
+    // <--- ATUALIZADO: Resetar CPF também
+    setUsuarioEmEdicao({ nome: "", email: "", senha: "", funcao: "OPERADOR", cpf: "" });
     setIsEditingUser(false);
     setModalUsuarioOpen(true);
   };
@@ -111,8 +122,9 @@ const Admin: React.FC = () => {
 
   const handleSaveUsuario = async () => {
     try {
-      if (!usuarioEmEdicao.nome || !usuarioEmEdicao.email) {
-        alert("Preencha nome e email!");
+      // <--- ATUALIZADO: Validar CPF
+      if (!usuarioEmEdicao.nome || !usuarioEmEdicao.email || !usuarioEmEdicao.cpf) {
+        alert("Preencha nome, email e CPF!");
         return;
       }
 
@@ -132,9 +144,11 @@ const Admin: React.FC = () => {
       
       setModalUsuarioOpen(false);
       fetchDados(); // Recarrega lista
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao salvar usuário:", error);
-      alert("Erro ao salvar usuário. Verifique os dados.");
+      // Feedback melhorado de erro
+      const msg = error.response?.data?.message || "Erro ao salvar usuário. Verifique os dados.";
+      alert(msg);
     }
   };
 
@@ -153,21 +167,16 @@ const Admin: React.FC = () => {
   // --- LÓGICA DE SISTEMA (BACKUP REAL) ---
   const handleBackup = async () => {
     try {
-        // Feedback visual imediato
         alert("Iniciando download do backup... Isso pode levar alguns segundos.");
         
-        // Faz a requisição pedindo um BLOB (arquivo)
-        // OBS: Certifique-se que sua rota no backend é '/administradores/backup'
         const response = await api.get('/administradores/backup', {
             responseType: 'blob', 
         });
 
-        // Cria um link temporário para forçar o download no navegador
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
         
-        // Tenta pegar o nome do arquivo enviado pelo servidor ou define um padrão
         const contentDisposition = response.headers['content-disposition'];
         let fileName = `backup_kadmill_${new Date().toISOString().split('T')[0]}.sql`;
         
@@ -180,13 +189,12 @@ const Admin: React.FC = () => {
         document.body.appendChild(link);
         link.click();
         
-        // Limpeza do link temporário
         link.remove();
         window.URL.revokeObjectURL(url);
 
     } catch (error) {
         console.error("Erro no backup:", error);
-        alert("Erro ao baixar o backup. Verifique se o servidor backend está online e com o 'pg_dump' instalado.");
+        alert("Erro ao baixar o backup. Verifique se o servidor backend está online.");
     }
   };
 
@@ -276,7 +284,7 @@ const Admin: React.FC = () => {
                <table className="kadmill-table" style={{ width: "100%" }}>
                  <thead>
                    <tr>
-                     <th>ID</th><th>Nome</th><th>Função</th><th>Email</th><th>Ações</th>
+                     <th>ID</th><th>Nome</th><th>Função</th><th>CPF</th><th>Email</th><th>Ações</th>
                    </tr>
                  </thead>
                  <tbody>
@@ -285,6 +293,7 @@ const Admin: React.FC = () => {
                        <td>{u.id}</td>
                        <td>{u.nome}</td>
                        <td><span className="status-badge">{u.funcao}</span></td>
+                       <td>{u.cpf || "-"}</td> {/* Exibe o CPF na tabela também */}
                        <td>{u.email}</td>
                        <td>
                            <button onClick={() => handleOpenEditarUsuario(u)} style={{ marginRight: "10px", border: "none", background: "none", cursor: "pointer" }}>✏️</button>
@@ -323,6 +332,18 @@ const Admin: React.FC = () => {
                  <label>Nome Completo</label>
                  <input type="text" value={usuarioEmEdicao.nome} onChange={e => setUsuarioEmEdicao({...usuarioEmEdicao, nome: e.target.value})} />
              </div>
+             
+             {/* --- NOVO CAMPO DE CPF --- */}
+             <div className="form-group">
+                 <label>CPF (obrigatório)</label>
+                 <input 
+                    type="text" 
+                    placeholder="000.000.000-00"
+                    value={usuarioEmEdicao.cpf} 
+                    onChange={e => setUsuarioEmEdicao({...usuarioEmEdicao, cpf: e.target.value})} 
+                 />
+             </div>
+
              <div className="form-group">
                  <label>Email (Login)</label>
                  <input type="email" value={usuarioEmEdicao.email} onChange={e => setUsuarioEmEdicao({...usuarioEmEdicao, email: e.target.value})} />
@@ -331,7 +352,7 @@ const Admin: React.FC = () => {
                  <label>Função</label>
                  <select value={usuarioEmEdicao.funcao} onChange={e => setUsuarioEmEdicao({...usuarioEmEdicao, funcao: e.target.value})}>
                      <option value="OPERADOR">Operador</option>
-                     <option value="SUPERVISOR">Supervisor</option>
+                     <option value="GERENTE">Gerente</option>
                      <option value="ADMIN">Administrador</option>
                  </select>
              </div>
