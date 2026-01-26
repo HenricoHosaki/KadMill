@@ -3,7 +3,6 @@ import { api } from "../services/api";
 import { Link } from "react-router-dom";
 import { isAdmin } from "../utils/authUtils";
 
-// Interface simplificada da OS para a Home
 interface OSData {
   id: number;
   cliente?: { nome: string };
@@ -24,7 +23,7 @@ const Home: React.FC = () => {
     abertas: 0,
     andamento: 0,
     concluidas: 0,
-    faturamentoPotencial: 0, // Soma de Abertas + Andamento
+    faturamentoPotencial: 0,
   });
 
   const fetchData = async () => {
@@ -34,12 +33,10 @@ const Home: React.FC = () => {
       const dados: OSData[] = response.data;
       setOsList(dados);
 
-      // Calcular KPIs
       const abertas = dados.filter((d) => d.status === "ABERTA");
       const andamento = dados.filter((d) => d.status === "EM_ANDAMENTO");
       const concluidas = dados.filter((d) => d.status === "CONCLUIDA");
 
-      // Calcular valor (apenas de OS ativas)
       const valorAbertas = abertas.reduce((acc, curr) => acc + Number(curr.valor_total || 0), 0);
       const valorAndamento = andamento.reduce((acc, curr) => acc + Number(curr.valor_total || 0), 0);
 
@@ -61,17 +58,15 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
-  // Cores e Labels para o Kanban
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "ABERTA": return "#faad14"; // Amarelo
-      case "EM_ANDAMENTO": return "#1890ff"; // Azul
-      case "CONCLUIDA": return "#52c41a"; // Verde
+      case "ABERTA": return "#faad14";
+      case "EM_ANDAMENTO": return "#1890ff";
+      case "CONCLUIDA": return "#52c41a";
       default: return "#d9d9d9";
     }
   };
 
-  // Componente de Cartão Kanban
   const KanbanCard = ({ os }: { os: OSData }) => (
     <div style={{
       background: "white",

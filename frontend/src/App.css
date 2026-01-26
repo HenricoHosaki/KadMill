@@ -255,8 +255,8 @@
 
 .tabs {
   display: flex;
-  margin-bottom: 25px; /* Espaço entre títulos e a tabela */
-  gap: 12px; /* Espaço entre Produto, Matéria Prima, etc. */
+  margin-bottom: 25px;
+  gap: 12px; 
 }
 
 .tabs button {
@@ -474,16 +474,16 @@
 }
 
 .btn-icon.delete:hover {
-  background-color: #ffe6e6; /* Fundo vermelho claro ao passar o mouse no lixo */
+  background-color: #ffe6e6;
 }
 
 .btn-icon.edit:hover {
-  background-color: #e6f7ff; /* Fundo azul claro ao passar o mouse no lápis */
+  background-color: #e6f7ff; 
 }
 
 /* --- MENU GLOBAL (RETRÁTIL - ESQUERDA) --- */
 .global-nav {
-  background-color: #050e1f; /* Mais escuro que o topo */
+  background-color: #050e1f; 
   color: white;
   width: 200px;
   display: flex;
@@ -530,7 +530,7 @@
   border: none;
   width: 100%;
   font-size: 1rem;
-  white-space: nowrap; /* Impede quebra de texto ao fechar */
+  white-space: nowrap; 
 }
 
 .global-links li a:hover {
@@ -541,7 +541,7 @@
 
 .global-nav .icon {
   font-size: 1.2rem;
-  min-width: 30px; /* Garante alinhamento quando fechado */
+  min-width: 30px; 
   text-align: center;
 }
 
@@ -551,27 +551,25 @@
 }
 
 .global-nav.collapsed span:not(.icon) {
-  display: none; /* Esconde o texto quando fechado */
+  display: none; 
 }
 
 /* --- MENU DE AÇÕES (FIXO - CINZA) --- */
 .sidebar {
   width: 260px;
-  background: #f4f4f4; /* Cinza claro, diferente do menu global */
+  background: #f4f4f4; 
   border-right: 1px solid #ddd;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0; /* Impede que encolha */
+  flex-shrink: 0;
 }
 
-/* Ajuste no Container Principal para aceitar Flex Row */
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
-/* A Top Nav agora fica dentro do container principal, à direita do menu global */
 .top-nav {
   padding-left: 20px;
 }

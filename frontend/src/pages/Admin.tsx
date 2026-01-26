@@ -9,7 +9,7 @@ interface Usuario {
   email: string;
   funcao: string;
   senha: string;
-  cpf: string; // <--- CORRIGIDO: Tipo string
+  cpf: string;
 }
 
 interface Apontamento {
@@ -108,14 +108,13 @@ const Admin: React.FC = () => {
 
   // --- LÓGICA DE USUÁRIOS (CRIAR / EDITAR / EXCLUIR) ---
   const handleOpenNovoUsuario = () => {
-    // <--- ATUALIZADO: Resetar CPF também
     setUsuarioEmEdicao({ nome: "", email: "", senha: "", funcao: "OPERADOR", cpf: "" });
     setIsEditingUser(false);
     setModalUsuarioOpen(true);
   };
 
   const handleOpenEditarUsuario = (user: Usuario) => {
-    setUsuarioEmEdicao({ ...user, senha: "" }); // Senha vazia para não alterar se não quiser
+    setUsuarioEmEdicao({ ...user, senha: "" });
     setIsEditingUser(true);
     setModalUsuarioOpen(true);
   };

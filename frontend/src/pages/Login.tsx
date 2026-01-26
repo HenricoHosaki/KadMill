@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
-import logo from "../assets/Logo_Kadmill.png"; // Importação do asset
-
+import logo from "../assets/Logo_Kadmill.png";
 const Login: React.FC = () => {
   const [id, setId] = useState("");
   const [senha, setSenha] = useState("");

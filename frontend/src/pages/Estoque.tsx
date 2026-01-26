@@ -65,11 +65,9 @@ const Estoque: React.FC = () => {
     }
   };
 
-  // --- CARREGAR DADOS AUXILIARES (DROPDOWNS) ---
   useEffect(() => {
     const fetchAuxiliares = async () => {
         try {
-            // Buscamos tudo em paralelo para ser rápido
             const [resFerr, resMat] = await Promise.all([
                 api.get("/ferramentas"),
                 api.get("/materiasPrimas"),
@@ -82,13 +80,12 @@ const Estoque: React.FC = () => {
         }
     };
     fetchAuxiliares();
-  }, []); // Roda apenas uma vez ao abrir a tela
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [abaAtiva]);
 
-  // --- LÓGICA DE FILTRAGEM ---
   const dadosFiltrados = dados.filter((item) => {
     if (filtros.id && !String(item.id).includes(filtros.id)) return false;
 
@@ -174,13 +171,11 @@ const Estoque: React.FC = () => {
       alert("✅ Atualizado com sucesso!");
       setIsEditing(false);
       fetchData(); 
-      
-      // Atualiza visualmente o modal aberto
+    
       if(osSelecionada && abaAtiva === "ORDEM_SERVICO") setOsSelecionada(payload);
       if(apontamentoSelecionado && abaAtiva === "APONTAMENTO") setApontamentoSelecionado(payload);
 
     } catch (error) {
-      // O api.ts já mostra o alerta de erro.
     }
   };
 
@@ -204,11 +199,9 @@ const Estoque: React.FC = () => {
       setOsSelecionada(null); setApontamentoSelecionado(null);
       fetchData();
     } catch (error) {
-       // O api.ts já mostra o alerta de erro.
     }
   };
 
-  // Componente genérico para os modais simples
   const ModalActions = ({ id }: { id: number }) => (
     <div style={{ marginTop: "20px", borderTop: "1px solid #eee", paddingTop: "15px", display: "flex", justifyContent: "space-between" }}>
         <div>
@@ -530,7 +523,6 @@ const Estoque: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Barra de Progresso (Meta) */}
                         {(() => {
                             const totalProduzido = osSelecionada.apontamentosOrdemServico?.reduce((acc: number, ap: any) => acc + (ap.quantidade_produzida || 0), 0) || 0;
                             const meta = osSelecionada.quantidade_esperada || 0;

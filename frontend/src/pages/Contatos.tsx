@@ -12,19 +12,16 @@ const Contatos: React.FC = () => {
   // Filtros
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [filtros, setFiltros] = useState({
-    termo: "", // Nome, CPF/CNPJ
+    termo: "",
     id: ""
   });
 
-  // Modais
   const [clienteSelecionado, setClienteSelecionado] = useState<any | null>(null);
   const [fornecedorSelecionado, setFornecedorSelecionado] = useState<any | null>(null);
 
-  // Edição
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<any>({});
 
-  // Resetar filtros ao trocar de aba
   useEffect(() => {
     setFiltros({ termo: "", id: "" });
   }, [abaAtiva]);
@@ -49,10 +46,7 @@ const Contatos: React.FC = () => {
 
   // --- LÓGICA DE FILTRAGEM ---
   const listaFiltrada = lista.filter((item) => {
-    // Filtro ID
     if (filtros.id && !String(item.id).includes(filtros.id)) return false;
-
-    // Filtro Texto (Nome, CNPJ, Email)
     if (filtros.termo) {
         const termo = filtros.termo.toLowerCase();
         const nome = item.nome.toLowerCase();
@@ -66,7 +60,6 @@ const Contatos: React.FC = () => {
     return true;
   });
 
-  // --- Lógica de Abertura de Modal ---
   const abrirModal = (item: any, type: "CLIENTE" | "FORNECEDOR") => {
       setEditData(item);
       setIsEditing(false);
