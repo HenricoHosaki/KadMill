@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import logo from "../assets/Logo_Kadmill.png";
+
 const Login: React.FC = () => {
   const [id, setId] = useState("");
   const [senha, setSenha] = useState("");
@@ -15,7 +16,15 @@ const Login: React.FC = () => {
     setCarregando(true);
     try {
       const response = await api.post("/login", { id: Number(id), senha });
-      localStorage.setItem("kadmill:token", response.data.token);
+
+      const { token, user } = response.data;
+
+      // Salvamos o token
+      localStorage.setItem("kadmill:token", token);
+      
+      localStorage.setItem("kadmill:userId", String(user.id));
+      localStorage.setItem("kadmill:userName", user.nome);
+
       navigate("/");
     } catch (err: any) {
       setErro(err.response?.data?.message || "Erro ao entrar no sistema.");

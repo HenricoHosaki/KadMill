@@ -39,7 +39,13 @@ export class AuthController {
       {expiresIn:Number(process.env.TOKEN_EXPIRE)}
     )
 
-    return res.status(200).json({ token })
+    return res.status(200).json({ token,
+      user: {
+        id: usuario.id,
+        nome: usuario.nome,
+        funcao: usuario.funcao
+      }
+     })
   }catch (err) {
   console.error("Erro detalhado no Login:", err); // Adicione esta linha
   return res.status(500).json({
