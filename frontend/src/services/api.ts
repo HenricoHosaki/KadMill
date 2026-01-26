@@ -3,7 +3,7 @@ Ele cuida do endereço, formato, segurança (token) e AGORA TAMBÉM dos erros gl
 
 import axios from "axios"; 
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3333";
+const baseURL = import.meta.env.VITE_API_URL || "kadmill.railway.internal";
 
 export const api = axios.create({
   baseURL, 
