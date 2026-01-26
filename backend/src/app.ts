@@ -34,12 +34,14 @@ async function start() {
 
   await criarAdmin();
 
-  app.listen(process.env.PORT || 3333, () => {
-    console.log(`Server is running on port ${process.env.PORT || 3333}`);
+  const port = Number(process.env.PORT) || 3333;
+  app.listen(port, "0.0.0.0", () => {
+    console.log(`🚀 Server is running on port ${port} and accepting external connections`);
   });
 }
 
+// Executa a função
 start().catch(err => {
-  console.error("Erro ao iniciar a aplicação:", err);
+  console.error("❌ Erro fatal ao iniciar a aplicação:", err);
   process.exit(1);
 });
