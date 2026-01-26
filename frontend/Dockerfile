@@ -3,11 +3,13 @@ FROM node:24-alpine as build
 
 WORKDIR /app
 
+ARG VITE_API_URL
+
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
 COPY . .
-RUN npm run build
+RUN VITE_API_URL=$VITE_API_URL npm run build
 
 # Etapa 2: Servidor Nginx para servir os arquivos estáticos
 FROM nginx:alpine
