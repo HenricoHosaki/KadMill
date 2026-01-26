@@ -1,49 +1,62 @@
-# Kadmill – Plataforma SaaS para Gestão Industrial
+# KadMill
 
-## O Kadmill é um SaaS moderno em desenvolvimento, criado para atender as necessidades da empresa LR Usinagem, com foco em controle operacional, gestão de usuários, ordens de serviço, apontamentos, estoque e segurança de acesso.
-O projeto está sendo desenvolvido com foco em arquitetura escalável, boas práticas de backend, segurança, e organização de código, simulando um ambiente real de software corporativo.
+KadMill é um SaaS de gestão industrial desenvolvido para a empresa LR Usinagem, com foco no controle de cadastros, ordens de serviço, estoque e apontamentos de produção.
 
+O projeto foi pensado desde o início para rodar em ambiente de produção, com arquitetura organizada, segurança, cache e deploy contínuo.
 
 ## Objetivo do Projeto
 
-O Kadmill tem como objetivos principais:
+O objetivo do KadMill é centralizar processos operacionais da empresa, permitindo:
 
-Atender uma demanda real de negócio da empresa LR Usinagem
+Gestão de usuários com controle de acesso por função
 
-Centralizar processos operacionais em uma única plataforma
+Cadastro de clientes, fornecedores e produtos
 
-Implementar controle de acesso por função (admin, gerente, operador)
+Controle de ordens de serviço
 
-Garantir segurança com JWT, Redis e hash de senhas
+Gerenciamento de estoque e matéria-prima
 
-Aplicar arquitetura em camadas e separação de responsabilidades
+Apontamentos de produção
 
-Criar uma base sólida para evolução do sistema como SaaS
+Autenticação segura e controle de sessão
 
-### Status do Projeto
-Em desenvolvimento ativo
+O sistema está em uso contínuo (24/7) e preparado para receber melhorias sob demanda.
 
 ## Arquitetura
 
-O backend do Kadmill segue uma arquitetura bem definida:
+O projeto segue uma arquitetura em camadas estilo MVC no backend:
 
-Routes → Definição das rotas HTTP
+routes → controllers → services → middlewares → database
 
-Middlewares → Autenticação, autorização e tratamento global de erros
 
-Controllers → Camada de entrada e saída das requisições
+## Principais responsabilidades:
 
-Services → Regras de negócio (isoladas da infraestrutura)
+Routes: definição das rotas HTTP
 
-Errors → Erros customizados da aplicação (AppError)
+Controllers: camada de entrada (HTTP)
 
-Bootstrap → Rotinas executadas na inicialização do sistema (ex: criação do admin)
+Services: regras de negócio
 
-Database → Prisma ORM + PostgreSQL
+Middlewares: autenticação, autorização e tratamento de erros
 
-Cache → Redis (blacklist de tokens JWT)
+Errors: centralização de erros de domínio
 
-## Tecnologias Utilizadas
+Bootstrap: inicialização de dados essenciais (admin)
+
+## Autenticação e Segurança
+
+Autenticação baseada em JWT
+
+Controle de acesso por função (ADMIN, OPERADOR, GERENTE)
+
+Redis utilizado para blacklist de tokens (revogação no logout)
+
+Middleware de autenticação protegendo rotas sensíveis
+
+Variáveis sensíveis protegidas via .env e ambiente de deploy
+
+##  Tecnologias Utilizadas
+Backend
 
 Node.js
 
@@ -55,20 +68,121 @@ Prisma ORM
 
 PostgreSQL
 
-JWT (jsonwebtoken)
-
 Redis
 
-bcrypt-ts
+JWT
 
-dotenv
+Docker / Docker Compose
 
-## Pré-requisitos
+Frontend
 
-Node.js (18+)
+Interface web integrada ao backend
 
-PostgreSQL
+Consumo de API REST
 
-Redis
+Autenticação via token
+
+## Infraestrutura
+
+Railway (Deploy)
+
+GitHub (Versionamento)
+
+Dockerizado para ambiente local e produção
+
+## Executando o Projeto Localmente
+Pré-requisitos
+
+Docker
+
+Docker Compose
 
 Git
+
+Passos
+# Clone o repositório
+git clone https://github.com/HenricoHosaki/KadMill.git
+
+# Acesse a pasta
+cd KadMill
+
+# Suba os serviços
+docker compose up
+
+
+Após isso:
+
+Backend: http://localhost:3333
+
+Frontend: http://localhost:5173
+
+⚙️ Variáveis de Ambiente
+
+O projeto utiliza variáveis de ambiente para segurança e configuração.
+
+Exemplo de variáveis utilizadas:
+
+DATABASE_URL=
+REDIS_PORT=
+REDIS_PASSWORD=
+REDIS_HOST=
+REDIS_URL=
+JWT_SECRET=
+TOKEN_EXPIRE=
+BOOTSTRAP_ADMIN_EMAIL=
+BOOTSTRAP_ADMIN_PASSWORD=
+
+
+Essas variáveis são configuradas:
+
+Localmente via .env
+
+Em produção diretamente no Railway
+
+## Bootstrap de Administrador
+
+Na inicialização do sistema, é criado automaticamente um usuário administrador caso não exista, utilizando variáveis de ambiente.
+
+Isso garante:
+
+acesso inicial ao sistema
+
+segurança (senha não fica hardcoded)
+
+controle de permissões desde o primeiro uso
+
+## Deploy
+
+O sistema está em produção utilizando Railway, com:
+
+Backend dockerizado
+
+PostgreSQL gerenciado
+
+Redis gerenciado
+
+Integração com GitHub
+
+Domínios separados para frontend e backend
+
+Aplicação rodando 24h
+
+## Status do Projeto
+
+🟢 Em produção (Manutenção ativa)
+
+O sistema está estável e recebe:
+
+correções pontuais
+
+melhorias incrementais
+
+novas funcionalidades sob demanda
+
+## Autor
+
+Henrico Hosaki
+Desenvolvedor Backend em formação
+Projeto desenvolvido com foco em aprendizado prático, arquitetura limpa e entrega real de software.
+
+🔗 GitHub: https://github.com/HenricoHosaki
