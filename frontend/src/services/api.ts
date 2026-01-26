@@ -1,16 +1,16 @@
-/* O api.ts serve para centralizar toda a comunicação entre o frontend e o backend.
-Ele cuida do endereço, formato, segurança (token) e AGORA TAMBÉM dos erros globais. */
-
 import axios from "axios"; 
 
+// Esta função garante que a URL seja válida, não importa como você digitou no Railway
 const getBaseURL = () => {
   const url = import.meta.env.VITE_API_URL;
   
   if (!url) return 'http://localhost:3333';
 
-  // Garante que a URL comece com http e não tenha espaços ou barras extras
+  // 1. Remove espaços e barras no final
   let cleanUrl = url.trim().replace(/\/$/, "");
   
+  // 2. IMPORTANTE: Se a URL não começar com http, nós adicionamos. 
+  // Isso evita que o navegador tente concatenar com o domínio do frontend.
   if (!cleanUrl.startsWith('http')) {
     cleanUrl = `https://${cleanUrl}`;
   }
