@@ -1,10 +1,11 @@
 import { MateriaPrimaService } from './../services/materiasPrimas';
 import { Request, Response } from 'express';
-
 const materiaPrimaService = new MateriaPrimaService();
 
+/**
+ * Controller da MatériaPrima
+ */
 export class MateriaPrimaController {
-
     async pegarTodosMateriaPrimas(req: Request, res: Response) {
         try {
             const materiaPrimas = await materiaPrimaService.pegarTodosMateriaPrimas();

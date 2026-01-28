@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import { FerramentaService } from '../services/ferramentas';
-
 const ferramentaService = new FerramentaService();
 
+/**
+ * Controller do Ferramenta
+ */
 export class FerramentaController {
 
     async pegarTodas(req: Request, res: Response) {

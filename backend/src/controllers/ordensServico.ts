@@ -1,9 +1,11 @@
 import { OrdemServico } from '@prisma/client';
 import { OrdemServicoService } from './../services/ordensServico';
 import { Request, Response } from 'express';
-
 const ordemServicoService = new OrdemServicoService();
 
+/**
+ * Controller da OrdemServiço
+ */
 export class OrdemServicoController {
 
     async pegarTodosOrdemServico(req: Request, res: Response) {

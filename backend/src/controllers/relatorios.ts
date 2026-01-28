@@ -1,8 +1,10 @@
 import { RelatorioService } from './../services/relatorios';
 import { Request, Response } from 'express';
-
 const relatorioService = new RelatorioService();
 
+/**
+ * Controller do Relatório
+ */
 export class RelatorioController {
 
     async pegarTodosUsuarios(req: Request, res: Response) {

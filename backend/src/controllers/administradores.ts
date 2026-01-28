@@ -2,9 +2,11 @@ import { AdministradorService } from './../services/administradores';
 import { Request, Response } from 'express';
 import { spawn } from 'child_process';
 import path from 'path';
-
 const administradorService = new AdministradorService();
 
+/**
+ * Controller do administrador
+ */
 export class AdministradorController {
 
     async pegarTodosUsuarios(req: Request, res: Response) {
@@ -123,7 +125,7 @@ export class AdministradorController {
 
     async fazerBackup(req: Request, res: Response) {
         try {
-            // Pega a URL do banco do arquivo .env
+            // -- Pega a URL do banco do arquivo .env -- //
             const dbUrl = process.env.DATABASE_URL;
             if (!dbUrl) {
                 return res.status(500).json({ message: "Configuração de banco de dados não encontrada." });
@@ -132,9 +134,8 @@ export class AdministradorController {
             res.setHeader('Content-Type', 'application/sql');
             res.setHeader('Content-Disposition', `attachment; filename=kadmill_backup_${new Date().toISOString().split('T')[0]}.sql`);
 
-            // Executa o pg_dump diretamente no container
+            // -- Executa o pg_dump diretamente no container -- //
             const pgDump = spawn('pg_dump', [dbUrl]);
-
             pgDump.stdout.pipe(res);
 
             pgDump.stderr.on('data', (data) => {

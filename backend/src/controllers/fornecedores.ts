@@ -1,8 +1,10 @@
 import { FornecedorService } from './../services/fornecedores';
 import { Request, Response } from 'express';
-
 const fornecedorService = new FornecedorService();
 
+/**
+ * Controller do Fornecedor
+ */
 export class FornecedorController {
 
     async pegarTodosFornecedores(req: Request, res: Response) {

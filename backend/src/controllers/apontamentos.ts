@@ -1,8 +1,10 @@
 import { ApontamentoService } from './../services/apontamentos';
 import { Request, Response } from 'express';
-
 const apontamentoService = new ApontamentoService();
 
+/**
+ * Controller do Apontamento
+ */
 export class ApontamentoController {
 
     async pegarTodosApontamentos(req: Request, res: Response) {

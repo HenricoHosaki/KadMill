@@ -1,8 +1,10 @@
 import { ProdutoService } from './../services/produtos';
 import { Request, Response } from 'express';
-
 const produtoService = new ProdutoService();
 
+/**
+ * Controller do Produto
+ */
 export class ProdutoController {
 
     async pegarTodosProdutos(req: Request, res: Response) {

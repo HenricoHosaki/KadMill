@@ -1,8 +1,10 @@
 import { ClienteService } from './../services/clientes';
 import { Request, Response } from 'express';
-
 const clienteService = new ClienteService();
 
+/**
+ * Controller do Cliente
+ */
 export class ClienteController {
 
     async pegarTodosClientes(req: Request, res: Response) {
