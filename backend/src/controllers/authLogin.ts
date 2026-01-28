@@ -6,7 +6,7 @@ import { JwtPayloadCustom } from "../types/jwt"
 const loginService = new Login()
 
 /**
- * Controller do Login
+ * Controller responsável pelo Login do usuário ao sistema
  */
 export class AuthController {
 

@@ -3,7 +3,8 @@ import { Request, Response } from 'express';
 const apontamentoService = new ApontamentoService();
 
 /**
- * Controller do Apontamento
+ * Controller responsável pelo controle de Apontamentos
+ * Gerencia as requisições para criação, listagem, edição e exclusão de Apontamentos
  */
 export class ApontamentoController {
 
@@ -80,7 +81,7 @@ export class ApontamentoController {
                 return res.status(400).json({ message: "Formato de ID inválido" })
             }
             
-            // --- CONVERSÃO DE DATA ---
+            // -- CONVERSÃO DE DATA -- //
             if (apontamento.data_apontamento && typeof apontamento.data_apontamento === 'string') {
                 apontamento.data_apontamento = new Date(apontamento.data_apontamento);
             }

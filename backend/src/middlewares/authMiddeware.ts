@@ -1,8 +1,17 @@
+import { Usuario } from '@prisma/client';
 import { Request, Response, NextFunction} from 'express';
 import { redis } from "../config/redis"
 import jwt from 'jsonwebtoken';
 import { JwtPayloadCustom } from '../types/jwt';
 
+/**
+ * Realizar o logout do usuário revogando o token JWT
+ * Calcula o tempo de expiração restante e armazena o token no Redis (Blacklist) 
+ * para impedir seu uso até que expire naturalmente.
+ * @param req - Request contendo Header Authorization (Bearer Token).
+ * @throws {401} Se o token não for fornecido ou mal endereçado
+ * @throws {400} Caso o token seja inválido
+ */
 export async function verificarListaRedis(req: Request, res: Response) {
   const authHeader = req.headers.authorization;
 
@@ -30,6 +39,13 @@ export async function verificarListaRedis(req: Request, res: Response) {
   return res.status(200).json({ message: "Logout realizado" });
 }
 
+/**
+ * Autenticar o Token enviado pelo usuário liberando acesso das rotas
+ * @param req - Request contendo Header Authorization (Bearer Token)
+ * @throws {401} Se o token for ausente, malformado, revogado ou expirado.
+ * @throws {500} Em caso de falhas críticas de infraestrutura.
+ * @returns - Retorna next() para avançar para o acesso do sistema caso validado
+ */
 export async function autenticadorMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
@@ -44,6 +60,7 @@ export async function autenticadorMiddleware(req: Request, res: Response, next: 
   }
 
   try {
+    // -- VERIFICA SE O TOKEN ESTÁ REVOGADO NA LISTA DO REDIS
     const tokenBlacklisted = await redis.get(token);
 
     if (tokenBlacklisted) {
@@ -62,7 +79,6 @@ export async function autenticadorMiddleware(req: Request, res: Response, next: 
 
     return next();
   } catch (error: any) {
-    // ALTERAÇÃO AQUI: Verifica se o erro é especificamente do JWT
     if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
       return res.status(401).json({ error: "Sessão expirada", message: "Faça login novamente." });
     }
@@ -72,6 +88,13 @@ export async function autenticadorMiddleware(req: Request, res: Response, next: 
   }
 }
 
+/**
+ * Valida funcao Admin nas rotas de Administração
+ * @param req - Request contendo Header Authorization (Bearer Token)
+ * @throws {401} Se o usuário não tiver função Administrador
+ * @throws {403} Se o acesso para o usuário for restrito
+ * @returns - Retorna next() se validação for verdadeiro
+ */
 export function apenasAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.usuario) {
     return res.status(401).json({ error: "Não autenticado" });

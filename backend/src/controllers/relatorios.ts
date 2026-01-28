@@ -3,7 +3,8 @@ import { Request, Response } from 'express';
 const relatorioService = new RelatorioService();
 
 /**
- * Controller do Relatório
+ * Controller responsável pela geração de relatórios do sistema.
+ * Gerencia as requisições para listagem de usuários, apontamentos e ordens de serviço.
  */
 export class RelatorioController {
 
@@ -18,6 +19,7 @@ export class RelatorioController {
             });
         }
     }
+    
     async pegarTodosApontamentos(req: Request, res: Response) {
         try {
             const apontamentos = await relatorioService.pegarTodosApontamentos();

@@ -5,7 +5,8 @@ import path from 'path';
 const administradorService = new AdministradorService();
 
 /**
- * Controller do administrador
+ * Controller responsável pelo controle de Usuários
+ * Gerencia as requisições para criação, listagem, edição e exclusão de Usuário
  */
 export class AdministradorController {
 

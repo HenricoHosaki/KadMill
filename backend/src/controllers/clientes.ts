@@ -3,7 +3,8 @@ import { Request, Response } from 'express';
 const clienteService = new ClienteService();
 
 /**
- * Controller do Cliente
+ * Controller responsável pelo controle de Clientes do sistema
+ * Gerencia as requisições para criação, listagem, edição e exclusão de Clientes
  */
 export class ClienteController {
 

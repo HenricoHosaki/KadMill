@@ -3,7 +3,8 @@ import { FerramentaService } from '../services/ferramentas';
 const ferramentaService = new FerramentaService();
 
 /**
- * Controller do Ferramenta
+ * Controller responsável pelo controle de Ferramentas do sistema
+ * Gerencia as requisições para criação, listagem, edição e exclusão de Ferramentas
  */
 export class FerramentaController {
 

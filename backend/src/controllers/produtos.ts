@@ -3,7 +3,8 @@ import { Request, Response } from 'express';
 const produtoService = new ProdutoService();
 
 /**
- * Controller do Produto
+ * Controller responsável pelo controle de Produtos do sistema
+ * Gerencia as requisições para criação, listagem, edição e exclusão de Produtos
  */
 export class ProdutoController {
 
@@ -34,7 +35,7 @@ export class ProdutoController {
 
             if(!produto){
                 return res.status(404).json({
-                    messsage: "Produto não encontrado"
+                    message: "Produto não encontrado"
                 })
             }
 
@@ -46,15 +47,13 @@ export class ProdutoController {
         }
     }
 
-   async criarProduto(req: Request, res: Response) {
+    async criarProduto(req: Request, res: Response) {
         try{
             const produto = req.body
 
-            // --- CORREÇÃO DE DATA ---
             if(produto.data_registro && typeof produto.data_registro === 'string'){
                 produto.data_registro = new Date(produto.data_registro);
             }
-            // ------------------------
 
             const produtoCriado = await produtoService.adicionarProduto(produto)
 
@@ -62,8 +61,8 @@ export class ProdutoController {
                 return res.status(400).json({ message: "Informações inválidas" })
             }
             return res.status(201).json({ message: "Produto registrado com sucesso" })
-        }catch(err: any){ // Adicione :any
-            console.error("Erro Produto:", err); // Log para debug
+        }catch(err: any){
+            console.error("Erro Produto:", err);
             res.status(500).json({ message: "Erro interno do servidor", error: err.message })
         }
     }

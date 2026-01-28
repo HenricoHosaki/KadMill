@@ -3,7 +3,8 @@ import { Request, Response } from 'express';
 const materiaPrimaService = new MateriaPrimaService();
 
 /**
- * Controller da MatériaPrima
+ * Controller responsável pelo controle de Materias Primas do sistema
+ * Gerencia as requisições para criação, listagem, edição e exclusão de Materias Primas
  */
 export class MateriaPrimaController {
     async pegarTodosMateriaPrimas(req: Request, res: Response) {

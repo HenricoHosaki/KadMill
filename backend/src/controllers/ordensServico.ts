@@ -4,7 +4,8 @@ import { Request, Response } from 'express';
 const ordemServicoService = new OrdemServicoService();
 
 /**
- * Controller da OrdemServiço
+ * Controller responsável pelo controle da Ordem de serviço do sistema
+ * Gerencia as requisições para criação, listagem, edição e exclusão da Ordem de serviço
  */
 export class OrdemServicoController {
 
@@ -51,7 +52,7 @@ export class OrdemServicoController {
         try{
             const ordemServico = req.body
 
-            // --- CONVERSÃO DE DATAS ---
+            // -- CONVERSÃO DE DATAS -- //
             if (ordemServico.data_abertura) ordemServico.data_abertura = new Date(ordemServico.data_abertura);
             if (ordemServico.data_fechamento) ordemServico.data_fechamento = new Date(ordemServico.data_fechamento);
             if (ordemServico.inicio_servico) ordemServico.inicio_servico = new Date(ordemServico.inicio_servico);
@@ -60,7 +61,6 @@ export class OrdemServicoController {
                 ordemServico.quantidade_esperada = Number(ordemServico.quantidade_esperada);
             }
             
-            // --- CONVERSÃO DE NÚMEROS (CORREÇÃO DO ERRO) ---
             if (ordemServico.tempo_total_execucao) {
                 ordemServico.tempo_total_execucao = Number(ordemServico.tempo_total_execucao);
             }
@@ -70,7 +70,6 @@ export class OrdemServicoController {
             if (ordemServico.clienteId) {
                 ordemServico.clienteId = Number(ordemServico.clienteId);
             }
-            // -----------------------------------------------
 
             const ordemServicoCriada = await ordemServicoService.adicionarOrdemServico(ordemServico)
 
@@ -98,7 +97,7 @@ export class OrdemServicoController {
                 return res.status(400).json({ message: "Formato de ID inválido" })
             }
 
-            // --- ADICIONE ESTE BLOCO DE CONVERSÃO DE DATA ---
+            // -- CONVERSÃO DE DATA -- //
             if (ordemServico.data_abertura && typeof ordemServico.data_abertura === 'string') {
                 ordemServico.data_abertura = new Date(ordemServico.data_abertura);
             }
@@ -114,8 +113,6 @@ export class OrdemServicoController {
     if (ordemServico.fim_servico && typeof ordemServico.fim_servico === 'string') {
         ordemServico.fim_servico = new Date(ordemServico.fim_servico);
     }
-            // ------------------------------------------------
-
             const ordemServicoAtualizada = await ordemServicoService.atualizarOrdemServico(idConvertido, ordemServico)
 
             if(!ordemServicoAtualizada){
@@ -123,8 +120,8 @@ export class OrdemServicoController {
             }
 
             return res.status(200).json({ message: "Ordem de serviço atualizada" })
-        }catch(err: any){ // Adicione :any para o TypeScript não reclamar
-            console.error("ERRO AO ATUALIZAR OS:", err); // Log para ver o erro real no terminal
+        }catch(err: any){
+            console.error("ERRO AO ATUALIZAR OS:", err);
             return res.status(500).json({
                 message: "Erro interno do servidor",
                 error: err.message

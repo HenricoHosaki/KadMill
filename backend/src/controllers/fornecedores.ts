@@ -3,7 +3,8 @@ import { Request, Response } from 'express';
 const fornecedorService = new FornecedorService();
 
 /**
- * Controller do Fornecedor
+ * Controller responsável pelo controle de Fornecedores do sistema
+ * Gerencia as requisições para criação, listagem, edição e exclusão de Fornecedores
  */
 export class FornecedorController {
 
