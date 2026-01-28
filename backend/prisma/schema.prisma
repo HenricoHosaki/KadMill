@@ -3,11 +3,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// -- MARCAÇÃO DA URL DO BANCO --//
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  //url = env("DATABASE_URL")
 }
 
+// -- ENUMERAÇÕES DO BANCO DE DADOS -- //
 enum Funcao {
   OPERADOR
   GERENTE
@@ -24,6 +26,7 @@ enum Status {
   INATIVO
 }
 
+// -- TABELAS DO BANDO DA LR USINAGEM -- //
 model Usuario {
   id              Int           @id @default(autoincrement())
   nome            String

@@ -2,6 +2,9 @@ import { prisma } from "../config/prisma"
 import { hash } from "bcrypt-ts"
 import { Funcao, Status } from "@prisma/client";
 
+/**
+ * FUNÇÃO CRIAR ADMIN BOOTSTRAP(INICIA COM O SISTEMA)
+*/
 export async function criarAdmin(){
     const email = process.env.BOOTSTRAP_ADMIN_EMAIL
     const senha = process.env.BOOTSTRAP_ADMIN_PASSWORD
