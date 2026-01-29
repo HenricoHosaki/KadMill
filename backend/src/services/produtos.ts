@@ -3,6 +3,7 @@ import { Prisma, Produto } from "@prisma/client";
 import { AppError } from "../errors/appError";
 
 export class ProdutoService{
+    
     async pegarTodosProdutos(): Promise<Produto[]>{
         const todosProdutos = await prisma.produto.findMany();
       

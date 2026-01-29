@@ -45,6 +45,7 @@ export async function verificarListaRedis(req: Request, res: Response) {
  * @throws {401} Se o token for ausente, malformado, revogado ou expirado.
  * @throws {500} Em caso de falhas críticas de infraestrutura.
  * @returns - Retorna next() para avançar para o acesso do sistema caso validado
+ * @notes - verifica se o Token está na lista do Redis antes de liberar
  */
 export async function autenticadorMiddleware(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -60,7 +61,6 @@ export async function autenticadorMiddleware(req: Request, res: Response, next: 
   }
 
   try {
-    // -- VERIFICA SE O TOKEN ESTÁ REVOGADO NA LISTA DO REDIS
     const tokenBlacklisted = await redis.get(token);
 
     if (tokenBlacklisted) {

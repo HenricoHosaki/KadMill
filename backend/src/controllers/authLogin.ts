@@ -11,7 +11,6 @@ const loginService = new Login()
 export class AuthController {
 
   async login(req: Request, res: Response) {
-    try{
     // -- RECEBE A SENHA E ID DO CORPO DA REQUISIÇÃO -- //
     const { id, senha } = req.body
 
@@ -52,12 +51,6 @@ export class AuthController {
         nome: usuario.nome,
         funcao: usuario.funcao
       }
-     })
-  }catch (err) {
-  console.error("Erro detalhado no Login:", err); // Adicione esta linha
-  return res.status(500).json({
-    error: "Erro interno do servidor"
-    });
-  }
+    })
   }
 }
