@@ -1,8 +1,9 @@
 import Redis, { RedisOptions } from "ioredis";
 
 /**
- * GERAMOS UM OBJETO DO REDIS COM AS OPÇÕES
- * REDISHOST, REDISPORT(EX: 6179), REDISPASSWORD
+ * Cria uma varíavel que recebe o type RedisOptions recebendo
+ * as propriedades Host, Port e Password configurados no arquivo .env
+ * @notes tentativas por requisição sem limite determinado e timeout configurado para 10000 após inatividade.
  */
 const redisOptions: RedisOptions = {
   host: process.env.REDISHOST || process.env.REDIS_HOST || "localhost",
@@ -20,7 +21,7 @@ if (password) {
 }
 
 /**
- * INSTÂNCIA DO REDIS RECEBENDO O OBJETO REDISOPTIONS
+ * Instancia a variável redisOptions conectando o Redis e retornando se foi um sucesso ou a conexão teve erro
  */
 export const redis = new Redis(redisOptions);
 

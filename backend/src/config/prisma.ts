@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 /**
- * INSTÂNCIA DO PRISMA CLIENT
- *
- * RECEBE A URL DO BANCO NA INSTâNCIA!
+ * Instância o PrismaClient recebemndo como objeto a variável do banco de dados.
  */
 export const prisma = new PrismaClient({
   datasourceUrl: process.env.DATABASE_URL!,

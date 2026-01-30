@@ -3,8 +3,10 @@ import { hash } from "bcrypt-ts"
 import { Funcao, Status } from "@prisma/client";
 
 /**
- * FUNÇÃO CRIAR ADMIN BOOTSTRAP(INICIA COM O SISTEMA)
-*/
+ * Cria um administrador ao iniciar o sistema, para acessar as rotas e configurar o restante dos usuários.
+ * @notes As credenciais devem estar configuradas no arquivo .env (BOOTSTRAP_ADMIN_EMAIL e BOOTSTRAP_ADMIN_PASSWORD).
+ * @returns {Promise<void>}
+ */
 export async function criarAdmin(){
     const email = process.env.BOOTSTRAP_ADMIN_EMAIL
     const senha = process.env.BOOTSTRAP_ADMIN_PASSWORD
