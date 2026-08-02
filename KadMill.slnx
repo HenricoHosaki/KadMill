@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KadMill.Api/KadMill.Api.csproj" />
+    <Project Path="src/KadMill.Domain.Tests/KadMill.Domain.Tests.csproj" />
+    <Project Path="src/KadMill.Domain/KadMill.Domain.csproj" />
+    <Project Path="src/KadMill.Infrastructure/KadMill.Infrastructure.csproj" />
+  </Folder>
+</Solution>
